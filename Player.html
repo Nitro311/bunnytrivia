@@ -37,7 +37,9 @@
 		
 		<div id="joinroompage" class="page">
 			Enter the room code:
-			<input type="text" placeholder="Room code"></input>
+			<input id="roomcode" type="text" placeholder="Room code" value="XYZA" />
+			Name:
+			<input id="playername" type="text" placeholder="Player Name" value="Alex" />
 			<button class="btn btn-lg btn-primary" id="joinroombutton">Join Room</button>
 		</div>
 			
@@ -52,12 +54,18 @@
 			
 			<p>
 				Your room code is:
-				<code>
-					XYZ
-				</code>
+				<h2><code id="roomcodedisplay"></code></h2>
 			</p>
-			Share with friends
-			http://example.com/room/XYZ
+			
+			<p>
+				Your Name:				
+				<h2><div id="namedisplay"></div></h2>
+			</p>
+
+			<p>
+				Share with friends
+				<div id="sharelink"></div>
+			</p>
 		</div>
 		<div id="waitingforquestionpage" class="page">
 			Waiting for question!
@@ -79,9 +87,17 @@
 	
 	<script>
 
-		$('#joinroombutton').on('click', function() {
-			$('.page').hide();
+		function joinRoom(room , playername) {
+			$('#roomcodedisplay').text(room);
+			$('#namedisplay').text(playername);
+			$('#sharelink').text("http://example.com/room/" + room);
 			$('#playerwaitingpage').show();
+		}
+	
+		$('#joinroombutton').on('click', function() {
+			$('.page').hide();			
+			joinRoom($('#roomcode').attr('value'),$('#playername').attr('value') );
+			
 		});
 		$('#acceptbutton').on('click', function() {
 			$('#acceptbutton').hide();
