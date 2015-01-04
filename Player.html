@@ -30,6 +30,10 @@
 		.correct {
 			background-color: green !important;
 		}
+		
+		INPUT[type=text] {
+			text-transform: uppercase;
+		}
 	</style>
   </head>
   <body>
@@ -38,19 +42,19 @@
 		<div id="joinroompage" class="page">			
 			<div id="roomcodemissing">
 				Enter the room code:
-				<input id="inputroomcode" type="text" placeholder="Room code" style="text-transform:uppercase" />
+				<input id="inputroomcode" type="text" placeholder="Room code" />
 			</div>
 			<div id="roomcodefromurl">
 				Room code:
 				<input type="text" disabled />
 			</div>
 			Name:
-			<input id="playername" type="text" placeholder="Player Name" value="Alex" />
+			<input id="nickname" type="text" placeholder="Player Name" />
 			<button class="btn btn-lg btn-primary" id="joinroombutton">Join Room</button>
 		</div>
 			
 		<div id="playerwaitingpage" class="page">
-			Waiting for other players1
+			Waiting for other players
 			<button id="acceptbutton"class="btn btn-lg btn-primary">Accept</button>
 			
 			<div id="playerwaitingspinner" style="display:none">
@@ -60,11 +64,11 @@
 			
 			<p>
 				Your room code is:
-				<h2><code id="roomcodedisplay"></code></h2>
+				<h2><div id="roomcodedisplay" ></div></h2>
 			</p>
 			
 			<p>
-				Your Name:				
+				Your Name:
 				<h2><div id="namedisplay"></div></h2>
 				Cookie:
 				<div id="cookie">
@@ -96,8 +100,6 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
 	
 	<script>
-		var room = '{{ room }}';
-	
 		function createCookie(name, value, days) {
 			var expires;
 
@@ -126,21 +128,26 @@
 			createCookie(name, "", -1);
 		}
 	
+		var room = '{{ room }}';
+		var nickname = readCookie('nickname');
+		var url = window.location;			
+		var roomUrl = url.protocol + "//" + url.hostname + ":" + url.port + "/player/" + room;
+	
 	
 	
 		function joinRoom(room , playername) {
-			createCookie("name", playername);
 			createCookie("room", room);
 			$('#roomcodedisplay').text(room);
 			$('#namedisplay').text(playername);
-			$('#sharelink').text("http://example.com/room/" + room);
+			$('#sharelink').text(roomUrl);
 			$('#playerwaitingpage').show();
-			$('#cookie').text(readCookie("name"));
+			$('#cookie').text(readCookie("nickname"));
 		}
 	
 		$('#joinroombutton').on('click', function() {
-			if (room == "") {
-				// TODO: Do something with the username
+			createCookie("nickname", $("#nickname").val().toUpperCase());
+			
+			if (room == "") {				
 				// TODO: Validate this input so it only contains A-Z
 				newRoom = $("#inputroomcode").val().toUpperCase();
 				window.location = window.location.href + "/" + newRoom;
@@ -148,7 +155,7 @@
 			}
 			
 			$('.page').hide();			
-			joinRoom($('#roomcode').val(), $('#playername').val());
+			joinRoom($('#roomcodefromurl input').val(), $('#nickname').val());
 		});
 		$('#acceptbutton').on('click', function() {
 			$('#acceptbutton').hide();
@@ -161,13 +168,15 @@
 		
 		$('#joinroompage').show();
 
-		if (room != "") {
+		$("#nickname").val(nickname.toUpperCase());
+		
+		if (room == "") {
+			$('#roomcodefromurl').hide();
+			$('#roomcodemissing').show();
+		} else {
 			$('#roomcodefromurl input').val(room);
 			$('#roomcodefromurl').show();
 			$('#roomcodemissing').hide();
-		} else {
-			$('#roomcodefromurl').hide();
-			$('#roomcodemissing').show();
 		}
 	</script>
   </body>
