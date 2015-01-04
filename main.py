@@ -4,12 +4,19 @@ import logging
 import os
 import random
 import json
+import string
 from google.appengine.api import channel
 from google.appengine.api import users
 from google.appengine.ext import db
 import webapp2
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
+
+def getRoomNumber():
+    letters = string.ascii_uppercase
+    roomNumber=random.choice(letters) + random.choice(letters) + random.choice(letters) + random.choice(letters)
+    # TODO: Remove potentially obscene room names
+    return roomNumber
 
 class Messager(object):
   """Sends a message to a given user."""
@@ -40,6 +47,14 @@ class MainPage(webapp2.RequestHandler):
 
 class DisplayPage(webapp2.RequestHandler):
   def get(self):
+    # TODO: create a new room
+    room = getRoomNumber()
+    url = self.request.host_url + "/display/" + room
+    logging.info("Redirecting to %s", url)
+    return self.redirect(url)
+
+class DisplayRoomPage(webapp2.RequestHandler):
+  def get(self, room):
     messager = Messager("myuniqueid4444")
     channel_token = messager.CreateChannelToken()
     template_values = { 'channel_token': channel_token }
@@ -59,8 +74,9 @@ class PlayerRoomPage(webapp2.RequestHandler):
 
 application = webapp2.WSGIApplication([
     ('/', MainPage),
-    ('/display', DisplayPage),
-    ('/player', PlayerPage),
+    ('/display/?', DisplayPage),
+    ('/display/([A-Za-z]+)', DisplayRoomPage),
+    ('/player/?', PlayerPage),
     ('/player/([A-Za-z]+)', PlayerRoomPage),
     #('/setname', SetNamePage),
     ('/connected', ConnectedPage)

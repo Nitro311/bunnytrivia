@@ -40,17 +40,19 @@
 	<div class="container">
 		
 		<div id="joinroompage" class="page">			
-			<div id="roomcodemissing">
-				Enter the room code:
-				<input id="inputroomcode" type="text" placeholder="Room code" />
-			</div>
-			<div id="roomcodefromurl">
-				Room code:
-				<input type="text" disabled />
-			</div>
-			Name:
-			<input id="nickname" type="text" placeholder="Player Name" />
-			<button class="btn btn-lg btn-primary" id="joinroombutton">Join Room</button>
+			<form id="joinroomform">
+				<div id="roomcodemissing">
+					Enter the room code:
+					<input id="inputroomcode" type="text" placeholder="Room code" autocomplete="off" required />
+				</div>
+				<div id="roomcodefromurl">
+					Room code:
+					<input type="text" disabled />
+				</div>
+				Name:
+				<input id="nickname" type="text" placeholder="Player Name" required />
+				<button type="submit" class="btn btn-lg btn-primary" id="joinroombutton">Join Room</button>
+			</form>
 		</div>
 			
 		<div id="playerwaitingpage" class="page">
@@ -144,18 +146,20 @@
 			$('#cookie').text(readCookie("nickname"));
 		}
 	
-		$('#joinroombutton').on('click', function() {
+		$('#joinroomform').on('submit', function() {
 			createCookie("nickname", $("#nickname").val().toUpperCase());
 			
 			if (room == "") {				
 				// TODO: Validate this input so it only contains A-Z
 				newRoom = $("#inputroomcode").val().toUpperCase();
 				window.location = window.location.href + "/" + newRoom;
-				return;
+				return false;
 			}
 			
 			$('.page').hide();			
 			joinRoom($('#roomcodefromurl input').val(), $('#nickname').val());
+			
+			return false;
 		});
 		$('#acceptbutton').on('click', function() {
 			$('#acceptbutton').hide();
@@ -174,6 +178,7 @@
 			$('#roomcodefromurl').hide();
 			$('#roomcodemissing').show();
 		} else {
+			$('#inputroomcode').val(room);
 			$('#roomcodefromurl input').val(room);
 			$('#roomcodefromurl').show();
 			$('#roomcodemissing').hide();
