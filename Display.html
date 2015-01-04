@@ -74,11 +74,13 @@
 					XYZ
 				</code>
 			</p>
+			Share url:
+			<div id="roomurl">http://example.com/room/XYZ</div>
 			Share room code:
-			http://example.com/room/XYZ
+			<div id="qrdiv"></div>
 			<br />
 		
-			<img height="100" src="spinner.gif">
+			<img height="100" src="/images/spinner.gif">
 			<button id="startnowbutton">Start Now!</button>
 		
 		</div>
@@ -151,6 +153,10 @@
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
 	
+	<script src='/_ah/channel/jsapi'></script>
+	
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.qrcode/1.0/jquery.qrcode.min.js"></script>
+	
 	<script>
 		var timeToShowQuestionSeconds = 1;
 		var timeToShowRoundPageSeconds = 1;
@@ -205,8 +211,41 @@
 			$('#displaywaitingpage').show();
 		});
 
+		function setRoomCode(room) {
+			var url = window.location;			
+			var roomUrl = url.protocol + "//" + url.hostname + ":" + url.port + "/player/" + room;
+			// TODO: Set up link
+			// TODO: Set up room code value
 
+			$('#qrdiv').qrcode({
+				text: roomUrl,
+				height: 128,
+				width: 128,
+				background: '#ffffff',
+				foreground: '#000000'
+			});
+		}
+
+		setRoomCode("ABCD");
 		$('#displaywaitingpage').show();
 	</script>
+	
+	<script>
+      sendMessage = function(path) {
+		$.post(path, "token=" + escape(token));
+      }
+
+      var token = '{{ channel_token }}';
+      var channel = new goog.appengine.Channel(token);
+      var socket = channel.open();
+      socket.onopen = function() {
+        window.setTimeout(function() {sendMessage('/connected')}, 100);
+      }
+      socket.onmessage = function(evt) {
+        var eventData = JSON.parse(evt.data);
+
+		alert(eventData);
+      }
+    </script>
   </body>
 </html>

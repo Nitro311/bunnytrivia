@@ -35,20 +35,26 @@
   <body>
 	<div class="container">
 		
-		<div id="joinroompage" class="page">
-			Enter the room code:
-			<input id="roomcode" type="text" placeholder="Room code" value="XYZA" />
+		<div id="joinroompage" class="page">			
+			<div id="roomcodemissing">
+				Enter the room code:
+				<input id="inputroomcode" type="text" placeholder="Room code" style="text-transform:uppercase" />
+			</div>
+			<div id="roomcodefromurl">
+				Room code:
+				<input type="text" disabled />
+			</div>
 			Name:
 			<input id="playername" type="text" placeholder="Player Name" value="Alex" />
 			<button class="btn btn-lg btn-primary" id="joinroombutton">Join Room</button>
 		</div>
 			
 		<div id="playerwaitingpage" class="page">
-			Waiting for other players
+			Waiting for other players1
 			<button id="acceptbutton"class="btn btn-lg btn-primary">Accept</button>
 			
 			<div id="playerwaitingspinner" style="display:none">
-				<img height="100" src="spinner.gif">
+				<img height="100" src="/images/spinner.gif">
 				<button id="startnowbutton">Start Now!</button>
 			</div>
 			
@@ -60,6 +66,10 @@
 			<p>
 				Your Name:				
 				<h2><div id="namedisplay"></div></h2>
+				Cookie:
+				<div id="cookie">
+				put cookie here				
+				</div>
 			</p>
 
 			<p>
@@ -69,7 +79,7 @@
 		</div>
 		<div id="waitingforquestionpage" class="page">
 			Waiting for question!
-			<img height="100" src="spinner.gif">
+			<img height="100" src="/images/spinner.gif">
 			<button id="startnowbutton">Start Now!</button>
 		</div>
 		<div id="pickanswerpage" class="page">
@@ -86,18 +96,59 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
 	
 	<script>
+		var room = '{{ room }}';
+	
+		function createCookie(name, value, days) {
+			var expires;
 
+			if (days) {
+				var date = new Date();
+				date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+				expires = "; expires=" + date.toGMTString();
+			} else {
+				expires = "";
+			}
+			document.cookie = escape(name) + "=" + escape(value) + expires + "; path=/";
+		}
+
+		function readCookie(name) {
+			var nameEQ = escape(name) + "=";
+			var ca = document.cookie.split(';');
+			for (var i = 0; i < ca.length; i++) {
+				var c = ca[i];
+				while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+				if (c.indexOf(nameEQ) === 0) return unescape(c.substring(nameEQ.length, c.length));
+			}
+			return null;
+		}
+
+		function eraseCookie(name) {
+			createCookie(name, "", -1);
+		}
+	
+	
+	
 		function joinRoom(room , playername) {
+			createCookie("name", playername);
+			createCookie("room", room);
 			$('#roomcodedisplay').text(room);
 			$('#namedisplay').text(playername);
 			$('#sharelink').text("http://example.com/room/" + room);
 			$('#playerwaitingpage').show();
+			$('#cookie').text(readCookie("name"));
 		}
 	
 		$('#joinroombutton').on('click', function() {
-			$('.page').hide();			
-			joinRoom($('#roomcode').attr('value'),$('#playername').attr('value') );
+			if (room == "") {
+				// TODO: Do something with the username
+				// TODO: Validate this input so it only contains A-Z
+				newRoom = $("#inputroomcode").val().toUpperCase();
+				window.location = window.location.href + "/" + newRoom;
+				return;
+			}
 			
+			$('.page').hide();			
+			joinRoom($('#roomcode').val(), $('#playername').val());
 		});
 		$('#acceptbutton').on('click', function() {
 			$('#acceptbutton').hide();
@@ -107,7 +158,17 @@
 			$('.page').hide();
 			$('#pickanswerpage').show();
 		});
+		
 		$('#joinroompage').show();
+
+		if (room != "") {
+			$('#roomcodefromurl input').val(room);
+			$('#roomcodefromurl').show();
+			$('#roomcodemissing').hide();
+		} else {
+			$('#roomcodefromurl').hide();
+			$('#roomcodemissing').show();
+		}
 	</script>
   </body>
 </html>
