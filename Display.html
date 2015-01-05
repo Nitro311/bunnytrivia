@@ -29,7 +29,13 @@
 		
 		.navbar-brand {
 			text-align: center;
+			height: 80px;
 		}
+		
+		.navbar-brand img {
+			height: 50px;
+		}
+		
 	</style>
   </head>
   <body>
@@ -38,14 +44,14 @@
 			<div class="container-fluid">
 				<div class="navbar-header">
 					<a class="navbar-brand">
-						Bunny Trivia
+						<img src="/images/logo.png">
 					</a>
 				</div>
 			</div>
 		</nav>
 		<div id="displaywaitingpage" class="page">
 			Waiting for players to accept
-			<table class="table table-striped">
+			<table class="table table-striped" id="waitingtable">
 				<thead>
 					<tr>
 						<th>Player</th>
@@ -158,6 +164,8 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.qrcode/1.0/jquery.qrcode.min.js"></script>
 	
 	<script>
+		var room = '{{ room }}';
+	
 		var timeToShowQuestionSeconds = 1;
 		var timeToShowRoundPageSeconds = 1;
 		var questionTimeRemaining;
@@ -233,18 +241,35 @@
 	<script>
       sendMessage = function(path) {
 		$.post(path, "token=" + escape(token));
+		console.log("POSTing to " + path + " for token " + token);
       }
 
       var token = '{{ channel_token }}';
       var channel = new goog.appengine.Channel(token);
       var socket = channel.open();
       socket.onopen = function() {
-        window.setTimeout(function() {sendMessage('/connected')}, 100);
+        window.setTimeout(function() { sendMessage('/connected'); }, 100);
       }
       socket.onmessage = function(evt) {
         var eventData = JSON.parse(evt.data);
 
-		alert(eventData);
+		console.log("Message received " + JSON.stringify(eventData));
+		
+		// TODO: Handle messages
+
+		if (eventData.message_type == "connected") {
+			sendMessage('/api/room/' + room);
+		} else if (eventData.message_type == "room") {
+			if (eventData.status == "waiting") {
+				$('#waitingtable tbody').empty();
+				for (var index in eventData.players) {
+					player = eventData.players[index];
+					$('#waitingtable tbody').append($('<tr><td>' + player + '</td></tr>'));
+				}
+
+				window.setTimeout(function() { sendMessage('/api/room/' + room); }, 500);
+			}
+		}
       }
     </script>
   </body>

@@ -172,12 +172,14 @@
 		
 		$('#joinroompage').show();
 
-		$("#nickname").val(nickname.toUpperCase());
+		if (nickname) {
+			$("#nickname").val(nickname.toUpperCase());
+		}
 		
 		if (room == "") {
 			$('#roomcodefromurl').hide();
 			$('#roomcodemissing').show();
-		} else {
+		} else {										
 			$('#inputroomcode').val(room);
 			$('#roomcodefromurl input').val(room);
 			$('#roomcodefromurl').show();
