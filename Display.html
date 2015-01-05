@@ -69,18 +69,15 @@
 				</table>
 
 				<p>
-					The room code is:
-					<code>
-						XYZ
-					</code>
+					Room code:
+					<h1><div id="roomcode"></div></h1>
 				</p>
-				Share url:
-				<div id="roomurl">http://example.com/room/XYZ</div>
-				Share room code:
+				Visit
+				<div id="roomurl"></div>
+				Or scan to play
 				<div id="qrdiv"></div>
 				<br />
 
-				<img height="100" src="/images/spinner.gif">
 				<button id="startnowbutton">Start Now!</button>
 
 			</div>
@@ -216,6 +213,8 @@
 				// TODO: Set up link
 				// TODO: Set up room code value
 
+				$('#roomcode').text(room);
+				$('#roomurl').text(roomUrl);				
 				$('#qrdiv').qrcode({
 					text: roomUrl,
 					height: 128,
@@ -225,7 +224,7 @@
 				});
 			}
 
-			setRoomCode("ABCD");
+			setRoomCode(room);
 			$('#displaywaitingpage').show();
 
 			// Messaging
@@ -252,6 +251,9 @@
 				} else if (eventData.message_type == "room") {
 					if (eventData.status == "waiting") {
 						$('#waitingtable tbody').empty();
+						if (eventData.players.length == 0) {
+							$('#waitingtable tbody').append($('<tr><td colspan="2"><em>Waiting for players...</em></td></tr>'));
+						}
 						for (index in eventData.players) {
 							player = eventData.players[index];
 							$('#waitingtable tbody').append($('<tr><td>' + player + '</td></tr>'));

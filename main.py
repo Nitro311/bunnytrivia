@@ -90,7 +90,9 @@ class RoomStatus(object):
     def __init__(self, room_id):
         self.message_type = "room"
         self.room_id = room_id
-        self.players = [random.choice(["Alex", "Fred", "Emily", "George"])]
+        self.players = []
+        for x in range(0, random.randrange(0, 3)):
+            self.players.append(random.choice(["Alex", "Fred", "Emily", "George", "Charles", "Bella"]))
         self.status = "waiting"
 
 app = webapp2.WSGIApplication([
