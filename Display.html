@@ -152,10 +152,10 @@
 		<script src='/_ah/channel/jsapi'></script>
 
 		<script>
-			var room = '{{ room }}';
+			var room_id = '{{ room }}';
 
-			var timeToShowQuestionSeconds = 1;
-			var timeToShowRoundPageSeconds = 1;
+			var timeToShowQuestionSeconds = 3;
+			var timeToShowRoundPageSeconds = 3;
 			var questionTimeRemaining;
 			var gameTimer;
 
@@ -207,13 +207,11 @@
 				$('#displaywaitingpage').show();
 			});
 
-			function setRoomCode(room) {
+			function setRoomCode(room_id) {
 				var url = window.location;
-				var roomUrl = url.protocol + "//" + url.hostname + ":" + url.port + "/player/" + room;
-				// TODO: Set up link
-				// TODO: Set up room code value
+				var roomUrl = url.protocol + "//" + url.hostname + ":" + url.port + "/player/" + room_id;
 
-				$('#roomcode').text(room);
+				$('#roomcode').text(room_id);
 				$('#roomurl').text(roomUrl);				
 				$('#qrdiv').qrcode({
 					text: roomUrl,
@@ -224,7 +222,7 @@
 				});
 			}
 
-			setRoomCode(room);
+			setRoomCode(room_id);
 			$('#displaywaitingpage').show();
 
 			// Messaging
@@ -247,7 +245,7 @@
 				// TODO: Handle messages
 
 				if (eventData.message_type == "connected") {
-					sendMessage('/api/room/' + room);
+					sendMessage('/api/room/' + room_id);
 				} else if (eventData.message_type == "room") {
 					if (eventData.status == "waiting") {
 						$('#waitingtable tbody').empty();
@@ -259,7 +257,7 @@
 							$('#waitingtable tbody').append($('<tr><td>' + player + '</td></tr>'));
 						}
 
-						window.setTimeout(function() { sendMessage('/api/room/' + room); }, 500);
+						window.setTimeout(function() { sendMessage('/api/room/' + room_id); }, 500);
 					}
 				}
 			}

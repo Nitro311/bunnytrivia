@@ -48,7 +48,7 @@ class IndexHandler(webapp2.RequestHandler):
         self.response.out.write(template.render(path, None))
 
 class DisplayHandler(webapp2.RequestHandler):
-    def get(self):
+    def post(self):
         # TODO: create a new room
         room = getRoomNumber()
         url = self.request.host_url + "/display/" + room
@@ -75,8 +75,7 @@ class PlayerRoomHandler(webapp2.RequestHandler):
         path = os.path.join(os.path.dirname(__file__), 'player.html')
         self.response.out.write(template.render(path, template_values))
 
-
-class RoomHandler(webapp2.RequestHandler):
+class ApiRoomHandler(webapp2.RequestHandler):
     def post(self, room):
         logging.info("Room status requested for %s by %s" % (room, self.request.get("token")))
         messager = Messager(self.request.get("token"))
@@ -102,5 +101,5 @@ app = webapp2.WSGIApplication([
     ('/player/([A-Za-z]+)', PlayerRoomHandler),
 
     ('/api', ApiConnectHandler),
-    ('/api/room/([A-Za-z]+)', RoomHandler)
+    ('/api/room/([A-Za-z]+)', ApiRoomHandler)
     ], debug=True)

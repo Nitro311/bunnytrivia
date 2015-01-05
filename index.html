@@ -46,8 +46,10 @@
 			</nav>
 		
 			<div id="welcomepage" class="page">
-				<a href="/player" class="btn btn-lg btn-primary" id="joinbutton">Join</a>
-				<a href="/display" class="btn btn-lg btn-success" id="startbutton">Start</a>
+				<form action="/display" method="POST">
+					<a href="/player" class="btn btn-lg btn-primary" id="joinbutton">Join</a>
+					<button type="submit" class="btn btn-lg btn-success" id="startbutton">Start</button>
+				</form>
 			</div>
 		
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>

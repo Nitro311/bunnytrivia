@@ -61,7 +61,7 @@
 
 				<p>
 					Your room code is:
-					<h2><div id="roomcodedisplay" ></div></h2>
+					<h2><div id="roomcodedisplay"></div></h2>
 				</p>
 
 				<p>
@@ -124,16 +124,16 @@
 				createCookie(name, "", -1);
 			}
 
-			var room = '{{ room }}';
+			var room_id = '{{ room }}';
 			var nickname = readCookie('nickname');
 			var url = window.location;
-			var roomUrl = url.protocol + "//" + url.hostname + ":" + url.port + "/player/" + room;
+			var roomUrl = url.protocol + "//" + url.hostname + ":" + url.port + "/player/" + room_id;
 
 
 
-			function joinRoom(room , playername) {
-				createCookie("room", room);
-				$('#roomcodedisplay').text(room);
+			function joinRoom(room_id , playername) {
+				createCookie("room", room_id);
+				$('#roomcodedisplay').text(room_id);
 				$('#namedisplay').text(playername);
 				$('#sharelink').text(roomUrl);
 				$('#playerwaitingpage').show();
@@ -143,7 +143,7 @@
 			$('#joinroomform').on('submit', function() {
 				createCookie("nickname", $("#nickname").val().toUpperCase());
 
-				if (room == "") {
+				if (room_id == "") {
 					// TODO: Validate this input so it only contains A-Z
 					newRoom = $("#inputroomcode").val().toUpperCase();
 					window.location = window.location.href + "/" + newRoom;
@@ -170,12 +170,12 @@
 				$("#nickname").val(nickname.toUpperCase());
 			}
 
-			if (room == "") {
+			if (room_id == "") {
 				$('#roomcodefromurl').hide();
 				$('#roomcodemissing').show();
 			} else {
-				$('#inputroomcode').val(room);
-				$('#roomcodefromurl input').val(room);
+				$('#inputroomcode').val(room_id);
+				$('#roomcodefromurl input').val(room_id);
 				$('#roomcodefromurl').show();
 				$('#roomcodemissing').hide();
 			}
