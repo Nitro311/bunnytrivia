@@ -12,7 +12,7 @@ from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 from questions import questions
 
-def getRoomNumber():
+def create_random_room_code():
     letters = string.ascii_uppercase
     roomNumber=random.choice(letters) + random.choice(letters) + random.choice(letters) + random.choice(letters)
     # TODO: Remove potentially obscene room names
@@ -34,13 +34,26 @@ class Messager(object):
         logging.info("Sending message to channel %s payload %s" % (self.unique_id, payload))
         channel.send_message(self.unique_id, payload)
 
+class MessageBase(object):
+    message_type = 'unknown'
+
+class ConnectedMessage(MessageBase):
+    def __init__(self):
+        self.message_type = 'connected'
+
+class RoomWaitingStatusMessage(MessageBase):
+    def __init__(self, room_id, players):
+        self.message_type = "room"
+        self.room_id = room_id
+        self.players = players
+        self.status = "waiting"
 
 class ApiConnectHandler(webapp2.RequestHandler):
     """This page is requested when the client is successfully connected to the channel."""
 
     def post(self):
         messager = Messager(self.request.get("token"))
-        messager.Send(dict(message_type = "connected"))
+        messager.Send(ConnectedMessage())
 
 class IndexHandler(webapp2.RequestHandler):
     def get(self):
@@ -50,17 +63,17 @@ class IndexHandler(webapp2.RequestHandler):
 class DisplayHandler(webapp2.RequestHandler):
     def post(self):
         # TODO: create a new room
-        room = getRoomNumber()
+        room = create_random_room_code()
         url = self.request.host_url + "/display/" + room
         logging.info("Redirecting to %s", url)
         return self.redirect(url)
 
 class DisplayRoomHandler(webapp2.RequestHandler):
-    def get(self, room):
+    def get(self, room_id):
         # TODO: Validate that the room exists
-        messager = Messager(room + "-unique-token")
+        messager = Messager(room_id + "-unique-token")
         channel_token = messager.CreateChannelToken()
-        template_values = { 'channel_token': channel_token, 'room': room.upper() }
+        template_values = { 'channel_token': channel_token, 'room': room_id.upper() }
         path = os.path.join(os.path.dirname(__file__), 'display.html')
         self.response.out.write(template.render(path, template_values))
 
@@ -70,28 +83,21 @@ class PlayerHandler(webapp2.RequestHandler):
         self.response.out.write(template.render(path, None))
 
 class PlayerRoomHandler(webapp2.RequestHandler):
-    def get(self, room):
-        template_values = { 'room': room.upper() }
+    def get(self, room_id):
+        template_values = { 'room': room_id.upper() }
         path = os.path.join(os.path.dirname(__file__), 'player.html')
         self.response.out.write(template.render(path, template_values))
 
 class ApiRoomHandler(webapp2.RequestHandler):
-    def post(self, room):
-        logging.info("Room status requested for %s by %s" % (room, self.request.get("token")))
+    def post(self, room_id):
+        logging.info("Room status requested for %s by %s" % (room_id, self.request.get("token")))
         messager = Messager(self.request.get("token"))
-        messager.Send(GetRoomStatus(room))
 
-def GetRoomStatus(room):
-    return RoomStatus(room)
-
-class RoomStatus(object):
-    def __init__(self, room_id):
-        self.message_type = "room"
-        self.room_id = room_id
-        self.players = []
+        players = []
         for x in range(0, random.randrange(0, 3)):
-            self.players.append(random.choice(["Alex", "Fred", "Emily", "George", "Charles", "Bella"]))
-        self.status = "waiting"
+            players.append(random.choice(["Alex", "Fred", "Emily", "George", "Charles", "Bella"]))
+
+        messager.Send(RoomWaitingStatusMessage(room_id, players))
 
 app = webapp2.WSGIApplication([
     ('/', IndexHandler),
