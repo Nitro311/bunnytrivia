@@ -88,7 +88,7 @@
 			</div>
 
 			<div class="page" id="questionpage">
-				How many polar bears does it take to change a light bulb?
+				<div id="question"><em>Loading...</em></div>
 
 				<div class="progress">
 					<div class="progress-bar progress-bar-striped" role="progressbar" id="timeleftprogressbar"><span class="sr-only">60% Complete</span></div>
@@ -195,13 +195,6 @@
 				gameTimer = setTimeout(showQuestionPage, 3000);
 			}
 
-			$('#startnowbutton').on('click', function(){
-				$('.page').hide();
-				$('#gamestartedpage').show();
-				gameTimer = setTimeout(showQuestionPage, timeToShowRoundPageSeconds * 1000);
-			});
-
-
 			$('#startbutton').on('click', function() {
 				$('.page').hide();
 				$('#displaywaitingpage').show();
@@ -258,6 +251,12 @@
 						}
 
 						window.setTimeout(function() { sendMessage('/api/room/' + room_id); }, 500);
+					} else if (eventData.status == "question") {
+						$('.page').hide();
+						$('#gamestartedpage').show();
+						
+						$('#question').text(eventData.question);
+						gameTimer = setTimeout(showQuestionPage, timeToShowRoundPageSeconds * 1000);
 					}
 				}
 			}

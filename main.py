@@ -48,6 +48,13 @@ class RoomWaitingStatusMessage(MessageBase):
         self.players = players
         self.status = "waiting"
 
+class RoomQuestionStatusMessage(MessageBase):
+    def __init__(self, room_id):
+        self.message_type = "room"
+        self.status = "question"
+        self.question = temporary_question
+
+
 class ApiConnectHandler(webapp2.RequestHandler):
     """This page is requested when the client is successfully connected to the channel."""
 
@@ -97,7 +104,15 @@ class ApiRoomHandler(webapp2.RequestHandler):
         for x in range(0, random.randrange(0, 3)):
             players.append(random.choice(["Alex", "Fred", "Emily", "George", "Charles", "Bella"]))
 
+        # HACK - Pick a random name to call it "done"
+        if players and players[0] == 'Alex':
+            messager.Send(RoomQuestionStatusMessage(room_id))
+
         messager.Send(RoomWaitingStatusMessage(room_id, players))
+
+# TODO: Fake this all in memory!
+
+temporary_question = random.choice(questions).question
 
 app = webapp2.WSGIApplication([
     ('/', IndexHandler),
