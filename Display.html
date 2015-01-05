@@ -1,276 +1,264 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Bunny Trivia</title>
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Bunny Trivia</title>
 
-    <!-- Bootstrap -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
+		<!-- Bootstrap -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
 
-    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
-      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-    <![endif]-->
-	
-	<style>
-		.page {
-			display: none;
-			text-align: center;
-		}
-		
-		.correct {
-			background-color: green !important;
-		}
-		
-		.navbar-brand {
-			text-align: center;
-			height: 80px;
-		}
-		
-		.navbar-brand img {
-			height: 50px;
-		}
-		
-	</style>
-  </head>
-  <body>
-	<div class="container">
-		<nav class="navbar navbar-default">
-			<div class="container-fluid">
-				<div class="navbar-header">
-					<a class="navbar-brand">
-						<img src="/images/logo.png">
-					</a>
+		<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+		<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+		<!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+			<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+		<style>
+			.page {
+				display: none;
+				text-align: center;
+			}
+
+			.correct {
+				background-color: green !important;
+			}
+
+			.navbar-brand {
+				text-align: center;
+				height: 80px;
+			}
+
+			.navbar-brand img {
+				height: 50px;
+			}
+
+		</style>
+	</head>
+	<body>
+		<div class="container">
+			<nav class="navbar navbar-default">
+				<div class="container-fluid">
+					<div class="navbar-header">
+						<a class="navbar-brand">
+							<img src="/images/logo.png" alt="Bunny Trivia">
+						</a>
+					</div>
+				</div>
+			</nav>
+			<div id="displaywaitingpage" class="page">
+				Waiting for players
+				<table class="table table-striped" id="waitingtable">
+					<thead>
+						<tr>
+							<th>Player</th>
+							<th>Ready</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><em>No players yet...</em></td>
+							<td></td>
+						</tr>
+					</tbody>
+				</table>
+
+				<p>
+					The room code is:
+					<code>
+						XYZ
+					</code>
+				</p>
+				Share url:
+				<div id="roomurl">http://example.com/room/XYZ</div>
+				Share room code:
+				<div id="qrdiv"></div>
+				<br />
+
+				<img height="100" src="/images/spinner.gif">
+				<button id="startnowbutton">Start Now!</button>
+
+			</div>
+
+			<div class="page" id="gamestartedpage">
+				Game Name
+				Round X
+			</div>
+
+			<div class="page" id="questionpage">
+				How many polar bears does it take to change a light bulb?
+
+				<div class="progress">
+					<div class="progress-bar progress-bar-striped" role="progressbar" id="timeleftprogressbar"><span class="sr-only">60% Complete</span></div>
 				</div>
 			</div>
-		</nav>
-		<div id="displaywaitingpage" class="page">
-			Waiting for players to accept
-			<table class="table table-striped" id="waitingtable">
-				<thead>
-					<tr>
-						<th>Player</th>
-						<th>Accepted</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr>
-						<td>Alex</td>
-						<td><input type="checkbox" disabled /></td>
-					</tr>
-					<tr>
-						<td>Emily</td>
-						<td><input type="checkbox" disabled checked /></td>
-					</tr>
-					<tr>
-						<td><em>Waiting...</em></td>
-						<td></td>
-					</tr>
-				</tbody>
-			</table>
-		
-			<p>
-				The room code is:
-				<code>
-					XYZ
-				</code>
-			</p>
-			Share url:
-			<div id="roomurl">http://example.com/room/XYZ</div>
-			Share room code:
-			<div id="qrdiv"></div>
-			<br />
-		
-			<img height="100" src="/images/spinner.gif">
-			<button id="startnowbutton">Start Now!</button>
-		
-		</div>
-		<div class="page" id="gamestartedpage">
-			Game Name
-			Round X
-		</div>
-		<div class="page" id="questionpage">
-			How many polar bears does it take to change a light bulb?
 
-			<div class="progress">
-				<div class="progress-bar progress-bar-striped" role="progressbar" id="timeleftprogressbar"><span class="sr-only">60% Complete</span></div>
+			<div class="page" id="answerspage">
+				<table class="table table-striped">
+					<thead>
+						<tr>
+							<th>Player</th>
+							<th>Answer</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>Alex</td>
+							<td>16</td>
+						</tr>
+						<tr>
+							<td>Emily</td>
+							<td>8</td>
+						</tr>
+						<tr class="correct">
+							<td>Aaron</td>
+							<td>47</td>
+						</tr>
+					</tbody>
+				</table>
 			</div>
 
+			<div class="page" id="scoringpage">
+				<table class="table table-striped">
+					<thead>
+						<tr>
+							<th>Player</th>
+							<th>Score</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>Alex</td>
+							<td>1000</td>
+						</tr>
+						<tr>
+							<td>Emily</td>
+							<td>500</td>
+						</tr>
+						<tr>
+							<td>Aaron</td>
+							<td>-1000</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
 		</div>
-		<div class="page" id="answerspage">
-			<table class="table table-striped">
-				<thead>
-					<tr>
-						<th>Player</th>
-						<th>Answer</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr>
-						<td>Alex</td>
-						<td>16</td>
-					</tr>
-					<tr>
-						<td>Emily</td>
-						<td>8</td>
-					</tr>
-					<tr class="correct">
-						<td>Aaron</td>
-						<td>47</td>
-					</tr>
-				</tbody>
-			</table>
-			
-		</div>
-		<div class="page" id="scoringpage">
-			<table class="table table-striped">
-				<thead>
-					<tr>
-						<th>Player</th>
-						<th>Score</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr>
-						<td>Alex</td>
-						<td>1000</td>
-					</tr>
-					<tr>
-						<td>Emily</td>
-						<td>500</td>
-					</tr>
-					<tr>
-						<td>Aaron</td>
-						<td>-1000</td>
-					</tr>
-				</tbody>
-			</table>
-			
-			
-		</div>
-	
-    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-    <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
-	
-	<script src='/_ah/channel/jsapi'></script>
-	
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.qrcode/1.0/jquery.qrcode.min.js"></script>
-	
-	<script>
-		var room = '{{ room }}';
-	
-		var timeToShowQuestionSeconds = 1;
-		var timeToShowRoundPageSeconds = 1;
-		var questionTimeRemaining;
-		var gameTimer;
-		
-		function showQuestionPage() {
-			$('.page').hide();
-			$('#questionpage').show();
 
-			questionTimeRemaining = timeToShowQuestionSeconds;
-			questionCountdown();
-		}
-	
-		function questionCountdown() {
-			// update the display for the remaining time
-			var percent = 100.0 * questionTimeRemaining / timeToShowQuestionSeconds;
-			$('#timeleftprogressbar').attr('style', 'width:' + percent + '%');
-			
-			questionTimeRemaining -= 1;
-			
-			if (questionTimeRemaining >= -1) {
-				gameTimer = setTimeout(questionCountdown, 1000);
-			} else {
-				showAnswersPage();
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.qrcode/1.0/jquery.qrcode.min.js"></script>
+		<script src='/_ah/channel/jsapi'></script>
+
+		<script>
+			var room = '{{ room }}';
+
+			var timeToShowQuestionSeconds = 1;
+			var timeToShowRoundPageSeconds = 1;
+			var questionTimeRemaining;
+			var gameTimer;
+
+			function showQuestionPage() {
+				$('.page').hide();
+				$('#questionpage').show();
+
+				questionTimeRemaining = timeToShowQuestionSeconds;
+				questionCountdown();
 			}
-		}
-		
-		function showAnswersPage() {
-			$('.page').hide();
-			$('#answerspage').show();
-			
-			gameTimer = setTimeout(showScoringPage, 3000);
-		}
-		
-		function showScoringPage() {
-			$('.page').hide();
-			$('#scoringpage').show();
-		
-			gameTimer = setTimeout(showQuestionPage, 3000);		
-		}		
-	
-	    $('#startnowbutton').on('click', function(){
-			$('.page').hide();
-			$('#gamestartedpage').show();
-			gameTimer = setTimeout(showQuestionPage, timeToShowRoundPageSeconds * 1000);
-		});
-		
-		
-		$('#startbutton').on('click', function() {
-			$('.page').hide();
-			$('#displaywaitingpage').show();
-		});
 
-		function setRoomCode(room) {
-			var url = window.location;			
-			var roomUrl = url.protocol + "//" + url.hostname + ":" + url.port + "/player/" + room;
-			// TODO: Set up link
-			// TODO: Set up room code value
+			function questionCountdown() {
+				// update the display for the remaining time
+				var percent = 100.0 * questionTimeRemaining / timeToShowQuestionSeconds;
+				$('#timeleftprogressbar').attr('style', 'width:' + percent + '%');
 
-			$('#qrdiv').qrcode({
-				text: roomUrl,
-				height: 128,
-				width: 128,
-				background: '#ffffff',
-				foreground: '#000000'
-			});
-		}
+				questionTimeRemaining -= 1;
 
-		setRoomCode("ABCD");
-		$('#displaywaitingpage').show();
-	</script>
-	
-	<script>
-      sendMessage = function(path) {
-		$.post(path, "token=" + escape(token));
-		console.log("POSTing to " + path + " for token " + token);
-      }
-
-      var token = '{{ channel_token }}';
-      var channel = new goog.appengine.Channel(token);
-      var socket = channel.open();
-      socket.onopen = function() {
-        window.setTimeout(function() { sendMessage('/connected'); }, 100);
-      }
-      socket.onmessage = function(evt) {
-        var eventData = JSON.parse(evt.data);
-
-		console.log("Message received " + JSON.stringify(eventData));
-		
-		// TODO: Handle messages
-
-		if (eventData.message_type == "connected") {
-			sendMessage('/api/room/' + room);
-		} else if (eventData.message_type == "room") {
-			if (eventData.status == "waiting") {
-				$('#waitingtable tbody').empty();
-				for (var index in eventData.players) {
-					player = eventData.players[index];
-					$('#waitingtable tbody').append($('<tr><td>' + player + '</td></tr>'));
+				if (questionTimeRemaining >= -1) {
+					gameTimer = setTimeout(questionCountdown, 1000);
+				} else {
+					showAnswersPage();
 				}
-
-				window.setTimeout(function() { sendMessage('/api/room/' + room); }, 500);
 			}
-		}
-      }
-    </script>
-  </body>
+
+			function showAnswersPage() {
+				$('.page').hide();
+				$('#answerspage').show();
+
+				gameTimer = setTimeout(showScoringPage, 3000);
+			}
+
+			function showScoringPage() {
+				$('.page').hide();
+				$('#scoringpage').show();
+
+				gameTimer = setTimeout(showQuestionPage, 3000);
+			}
+
+			$('#startnowbutton').on('click', function(){
+				$('.page').hide();
+				$('#gamestartedpage').show();
+				gameTimer = setTimeout(showQuestionPage, timeToShowRoundPageSeconds * 1000);
+			});
+
+
+			$('#startbutton').on('click', function() {
+				$('.page').hide();
+				$('#displaywaitingpage').show();
+			});
+
+			function setRoomCode(room) {
+				var url = window.location;
+				var roomUrl = url.protocol + "//" + url.hostname + ":" + url.port + "/player/" + room;
+				// TODO: Set up link
+				// TODO: Set up room code value
+
+				$('#qrdiv').qrcode({
+					text: roomUrl,
+					height: 128,
+					width: 128,
+					background: '#ffffff',
+					foreground: '#000000'
+				});
+			}
+
+			setRoomCode("ABCD");
+			$('#displaywaitingpage').show();
+
+			// Messaging
+			sendMessage = function(path) {
+				$.post(path, "token=" + escape(token));
+				console.log("POSTing to " + path + " for token " + token);
+			}
+
+			var token = '{{ channel_token }}';
+			var channel = new goog.appengine.Channel(token);
+			var socket = channel.open();
+			socket.onopen = function() {
+				window.setTimeout(function() { sendMessage('/connected'); }, 100);
+			}
+			socket.onmessage = function(evt) {
+				var eventData = JSON.parse(evt.data);
+
+				console.log("Message received " + JSON.stringify(eventData));
+
+				// TODO: Handle messages
+
+				if (eventData.message_type == "connected") {
+					sendMessage('/api/room/' + room);
+				} else if (eventData.message_type == "room") {
+					if (eventData.status == "waiting") {
+						$('#waitingtable tbody').empty();
+						for (index in eventData.players) {
+							player = eventData.players[index];
+							$('#waitingtable tbody').append($('<tr><td>' + player + '</td></tr>'));
+						}
+
+						window.setTimeout(function() { sendMessage('/api/room/' + room); }, 500);
+					}
+				}
+			}
+		</script>
+	</body>
 </html>

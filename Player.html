@@ -1,190 +1,184 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Bunny Trivia</title>
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Bunny Trivia</title>
 
-    <!-- Bootstrap -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
+		<!-- Bootstrap -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
 
-    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
-      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-    <![endif]-->
-	
-	<style>
-		.page {
-			display: none;
-			text-align: center;
-		}
-		
-		.navbar-brand {
-			text-align: center;
-		}
-		
-		.correct {
-			background-color: green !important;
-		}
-		
-		INPUT[type=text] {
-			text-transform: uppercase;
-		}
-	</style>
-  </head>
-  <body>
-	<div class="container">
-		
-		<div id="joinroompage" class="page">			
-			<form id="joinroomform">
-				<div id="roomcodemissing">
-					Enter the room code:
-					<input id="inputroomcode" type="text" placeholder="Room code" autocomplete="off" required />
+		<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+		<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+		<!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+			<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+		<style>
+			.page {
+				display: none;
+				text-align: center;
+			}
+
+			.correct {
+				background-color: green !important;
+			}
+
+			INPUT[type=text] {
+				text-transform: uppercase;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container">
+			<div id="joinroompage" class="page">
+				<form id="joinroomform">
+					<div id="roomcodemissing">
+						Enter the room code:
+						<input id="inputroomcode" type="text" placeholder="Room code" autocomplete="off" required />
+					</div>
+					<div id="roomcodefromurl">
+						Room code:
+						<input type="text" disabled />
+					</div>
+					Name:
+					<input id="nickname" type="text" placeholder="Player Name" required />
+					<button type="submit" class="btn btn-lg btn-primary" id="joinroombutton">Join Room</button>
+				</form>
+			</div>
+
+			<div id="playerwaitingpage" class="page">
+				Waiting for other players
+				<button id="acceptbutton"class="btn btn-lg btn-primary">Accept</button>
+
+				<div id="playerwaitingspinner" style="display:none">
+					<img height="100" src="/images/spinner.gif">
+					<button id="startnowbutton">Start Now!</button>
 				</div>
-				<div id="roomcodefromurl">
-					Room code:
-					<input type="text" disabled />
-				</div>
-				Name:
-				<input id="nickname" type="text" placeholder="Player Name" required />
-				<button type="submit" class="btn btn-lg btn-primary" id="joinroombutton">Join Room</button>
-			</form>
-		</div>
-			
-		<div id="playerwaitingpage" class="page">
-			Waiting for other players
-			<button id="acceptbutton"class="btn btn-lg btn-primary">Accept</button>
-			
-			<div id="playerwaitingspinner" style="display:none">
+
+				<p>
+					Your room code is:
+					<h2><div id="roomcodedisplay" ></div></h2>
+				</p>
+
+				<p>
+					Your Name:
+					<h2><div id="namedisplay"></div></h2>
+					Cookie:
+					<div id="cookie">
+					put cookie here
+					</div>
+				</p>
+
+				<p>
+					Share with friends
+					<div id="sharelink"></div>
+				</p>
+			</div>
+			<div id="waitingforquestionpage" class="page">
+				Waiting for question!
 				<img height="100" src="/images/spinner.gif">
 				<button id="startnowbutton">Start Now!</button>
 			</div>
-			
-			<p>
-				Your room code is:
-				<h2><div id="roomcodedisplay" ></div></h2>
-			</p>
-			
-			<p>
-				Your Name:
-				<h2><div id="namedisplay"></div></h2>
-				Cookie:
-				<div id="cookie">
-				put cookie here				
-				</div>
-			</p>
+			<div id="pickanswerpage" class="page">
+				<button class="btn btn-lg btn-success">1</button>
+				<button class="btn btn-lg btn-success">2</button>
+				<button class="btn btn-lg btn-success">3</button>
 
-			<p>
-				Share with friends
-				<div id="sharelink"></div>
-			</p>
-		</div>
-		<div id="waitingforquestionpage" class="page">
-			Waiting for question!
-			<img height="100" src="/images/spinner.gif">
-			<button id="startnowbutton">Start Now!</button>
-		</div>
-		<div id="pickanswerpage" class="page">
-			<button class="btn btn-lg btn-success">1</button>
-			<button class="btn btn-lg btn-success">2</button>
-			<button class="btn btn-lg btn-success">3</button>
-				
-		</div>
-		
-	</div>
-    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-    <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
-	
-	<script>
-		function createCookie(name, value, days) {
-			var expires;
+			</div>
 
-			if (days) {
-				var date = new Date();
-				date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-				expires = "; expires=" + date.toGMTString();
-			} else {
-				expires = "";
+		</div>
+
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+
+		<script>
+			function createCookie(name, value, days) {
+				var expires = "";
+
+				if (days) {
+					var date = new Date();
+					date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+					expires = "; expires=" + date.toGMTString();
+				}
+				document.cookie = escape(name) + "=" + escape(value) + expires + "; path=/";
 			}
-			document.cookie = escape(name) + "=" + escape(value) + expires + "; path=/";
-		}
 
-		function readCookie(name) {
-			var nameEQ = escape(name) + "=";
-			var ca = document.cookie.split(';');
-			for (var i = 0; i < ca.length; i++) {
-				var c = ca[i];
-				while (c.charAt(0) === ' ') c = c.substring(1, c.length);
-				if (c.indexOf(nameEQ) === 0) return unescape(c.substring(nameEQ.length, c.length));
+			function readCookie(name) {
+				var nameEQ = escape(name) + "=";
+				var ca = document.cookie.split(';');
+				for (var i = 0; i < ca.length; i++) {
+					var c = ca[i];
+					while (c.charAt(0) === ' ')
+						c = c.substring(1, c.length);
+					if (c.indexOf(nameEQ) === 0)
+						return unescape(c.substring(nameEQ.length, c.length));
+				}
+				return null;
 			}
-			return null;
-		}
 
-		function eraseCookie(name) {
-			createCookie(name, "", -1);
-		}
-	
-		var room = '{{ room }}';
-		var nickname = readCookie('nickname');
-		var url = window.location;			
-		var roomUrl = url.protocol + "//" + url.hostname + ":" + url.port + "/player/" + room;
-	
-	
-	
-		function joinRoom(room , playername) {
-			createCookie("room", room);
-			$('#roomcodedisplay').text(room);
-			$('#namedisplay').text(playername);
-			$('#sharelink').text(roomUrl);
-			$('#playerwaitingpage').show();
-			$('#cookie').text(readCookie("nickname"));
-		}
-	
-		$('#joinroomform').on('submit', function() {
-			createCookie("nickname", $("#nickname").val().toUpperCase());
-			
-			if (room == "") {				
-				// TODO: Validate this input so it only contains A-Z
-				newRoom = $("#inputroomcode").val().toUpperCase();
-				window.location = window.location.href + "/" + newRoom;
+			function eraseCookie(name) {
+				createCookie(name, "", -1);
+			}
+
+			var room = '{{ room }}';
+			var nickname = readCookie('nickname');
+			var url = window.location;
+			var roomUrl = url.protocol + "//" + url.hostname + ":" + url.port + "/player/" + room;
+
+
+
+			function joinRoom(room , playername) {
+				createCookie("room", room);
+				$('#roomcodedisplay').text(room);
+				$('#namedisplay').text(playername);
+				$('#sharelink').text(roomUrl);
+				$('#playerwaitingpage').show();
+				$('#cookie').text(readCookie("nickname"));
+			}
+
+			$('#joinroomform').on('submit', function() {
+				createCookie("nickname", $("#nickname").val().toUpperCase());
+
+				if (room == "") {
+					// TODO: Validate this input so it only contains A-Z
+					newRoom = $("#inputroomcode").val().toUpperCase();
+					window.location = window.location.href + "/" + newRoom;
+					return false;
+				}
+
+				$('.page').hide();
+				joinRoom($('#roomcodefromurl input').val(), $('#nickname').val());
+
 				return false;
-			}
-			
-			$('.page').hide();			
-			joinRoom($('#roomcodefromurl input').val(), $('#nickname').val());
-			
-			return false;
-		});
-		$('#acceptbutton').on('click', function() {
-			$('#acceptbutton').hide();
-			$('#playerwaitingspinner').show();
-		});
-		$('#startnowbutton').on('click', function() {
-			$('.page').hide();
-			$('#pickanswerpage').show();
-		});
-		
-		$('#joinroompage').show();
+			});
+			$('#acceptbutton').on('click', function() {
+				$('#acceptbutton').hide();
+				$('#playerwaitingspinner').show();
+			});
+			$('#startnowbutton').on('click', function() {
+				$('.page').hide();
+				$('#pickanswerpage').show();
+			});
 
-		if (nickname) {
-			$("#nickname").val(nickname.toUpperCase());
-		}
-		
-		if (room == "") {
-			$('#roomcodefromurl').hide();
-			$('#roomcodemissing').show();
-		} else {										
-			$('#inputroomcode').val(room);
-			$('#roomcodefromurl input').val(room);
-			$('#roomcodefromurl').show();
-			$('#roomcodemissing').hide();
-		}
-	</script>
-  </body>
+			$('#joinroompage').show();
+
+			if (nickname) {
+				$("#nickname").val(nickname.toUpperCase());
+			}
+
+			if (room == "") {
+				$('#roomcodefromurl').hide();
+				$('#roomcodemissing').show();
+			} else {
+				$('#inputroomcode').val(room);
+				$('#roomcodefromurl input').val(room);
+				$('#roomcodefromurl').show();
+				$('#roomcodemissing').hide();
+			}
+		</script>
+	</body>
 </html>

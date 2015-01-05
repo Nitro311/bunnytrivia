@@ -20,68 +20,68 @@ def getRoomNumber():
     return roomNumber
 
 class Messager(object):
-  """Sends a message to a given user."""
+    """Sends a message to a given user."""
 
-  def __init__(self, unique_id):
-    self.unique_id = unique_id
+    def __init__(self, unique_id):
+        self.unique_id = unique_id
 
-  def CreateChannelToken(self):
-    logging.info("Create channel: " + self.unique_id)
-    return channel.create_channel(self.unique_id)
+    def CreateChannelToken(self):
+        logging.info("Create channel: " + self.unique_id)
+        return channel.create_channel(self.unique_id)
 
-  def Send(self, message):
-    """Send a message to the client associated with the user."""
-    payload = json.dumps(message, default=lambda o: o.__dict__, sort_keys=True)
-    logging.info("Sending message to channel %s payload %s" % (self.unique_id, payload))
-    channel.send_message(self.unique_id, payload)
+    def Send(self, message):
+        """Send a message to the client associated with the user."""
+        payload = json.dumps(message, default=lambda o: o.__dict__, sort_keys=True)
+        logging.info("Sending message to channel %s payload %s" % (self.unique_id, payload))
+        channel.send_message(self.unique_id, payload)
 
 
 class ConnectedPage(webapp2.RequestHandler):
-  """This page is requested when the client is successfully connected to the channel."""
+    """This page is requested when the client is successfully connected to the channel."""
 
-  def post(self):
-    messager = Messager(self.request.get("token"))
-    messager.Send(dict(message_type = "connected"))
+    def post(self):
+        messager = Messager(self.request.get("token"))
+        messager.Send(dict(message_type = "connected"))
 
 class MainPage(webapp2.RequestHandler):
-  def get(self):
-    path = os.path.join(os.path.dirname(__file__), 'index.html')
-    self.response.out.write(template.render(path, None))
+    def get(self):
+        path = os.path.join(os.path.dirname(__file__), 'index.html')
+        self.response.out.write(template.render(path, None))
 
 class DisplayPage(webapp2.RequestHandler):
-  def get(self):
-    # TODO: create a new room
-    room = getRoomNumber()
-    url = self.request.host_url + "/display/" + room
-    logging.info("Redirecting to %s", url)
-    return self.redirect(url)
+    def get(self):
+        # TODO: create a new room
+        room = getRoomNumber()
+        url = self.request.host_url + "/display/" + room
+        logging.info("Redirecting to %s", url)
+        return self.redirect(url)
 
 class DisplayRoomPage(webapp2.RequestHandler):
-  def get(self, room):
-    # TODO: Validate that the room exists
-    messager = Messager(room + "-unique-token")
-    channel_token = messager.CreateChannelToken()
-    template_values = { 'channel_token': channel_token, 'room': room.upper() }
-    path = os.path.join(os.path.dirname(__file__), 'display.html')
-    self.response.out.write(template.render(path, template_values))
+    def get(self, room):
+        # TODO: Validate that the room exists
+        messager = Messager(room + "-unique-token")
+        channel_token = messager.CreateChannelToken()
+        template_values = { 'channel_token': channel_token, 'room': room.upper() }
+        path = os.path.join(os.path.dirname(__file__), 'display.html')
+        self.response.out.write(template.render(path, template_values))
 
 class PlayerPage(webapp2.RequestHandler):
-  def get(self):
-    path = os.path.join(os.path.dirname(__file__), 'player.html')
-    self.response.out.write(template.render(path, None))
+    def get(self):
+        path = os.path.join(os.path.dirname(__file__), 'player.html')
+        self.response.out.write(template.render(path, None))
 
 class PlayerRoomPage(webapp2.RequestHandler):
-  def get(self, room):
-    template_values = { 'room': room.upper() }
-    path = os.path.join(os.path.dirname(__file__), 'player.html')
-    self.response.out.write(template.render(path, template_values))
+    def get(self, room):
+        template_values = { 'room': room.upper() }
+        path = os.path.join(os.path.dirname(__file__), 'player.html')
+        self.response.out.write(template.render(path, template_values))
 
 
 class RoomHandler(webapp2.RequestHandler):
-  def post(self, room):
-    logging.info("Room status requested for %s by %s" % (room, self.request.get("token")))
-    messager = Messager(self.request.get("token"))
-    messager.Send(GetRoomStatus(room))
+    def post(self, room):
+        logging.info("Room status requested for %s by %s" % (room, self.request.get("token")))
+        messager = Messager(self.request.get("token"))
+        messager.Send(GetRoomStatus(room))
 
 def GetRoomStatus(room):
     return RoomStatus(room)
@@ -103,4 +103,3 @@ app = webapp2.WSGIApplication([
     #('/setname', SetNamePage),
     ('/connected', ConnectedPage)
     ], debug=True)
-
