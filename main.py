@@ -1,4 +1,3 @@
-
 import datetime
 import logging
 import os
@@ -36,19 +35,19 @@ class Messager(object):
         channel.send_message(self.unique_id, payload)
 
 
-class ConnectedPage(webapp2.RequestHandler):
+class ApiConnectHandler(webapp2.RequestHandler):
     """This page is requested when the client is successfully connected to the channel."""
 
     def post(self):
         messager = Messager(self.request.get("token"))
         messager.Send(dict(message_type = "connected"))
 
-class MainPage(webapp2.RequestHandler):
+class IndexHandler(webapp2.RequestHandler):
     def get(self):
         path = os.path.join(os.path.dirname(__file__), 'index.html')
         self.response.out.write(template.render(path, None))
 
-class DisplayPage(webapp2.RequestHandler):
+class DisplayHandler(webapp2.RequestHandler):
     def get(self):
         # TODO: create a new room
         room = getRoomNumber()
@@ -56,7 +55,7 @@ class DisplayPage(webapp2.RequestHandler):
         logging.info("Redirecting to %s", url)
         return self.redirect(url)
 
-class DisplayRoomPage(webapp2.RequestHandler):
+class DisplayRoomHandler(webapp2.RequestHandler):
     def get(self, room):
         # TODO: Validate that the room exists
         messager = Messager(room + "-unique-token")
@@ -65,12 +64,12 @@ class DisplayRoomPage(webapp2.RequestHandler):
         path = os.path.join(os.path.dirname(__file__), 'display.html')
         self.response.out.write(template.render(path, template_values))
 
-class PlayerPage(webapp2.RequestHandler):
+class PlayerHandler(webapp2.RequestHandler):
     def get(self):
         path = os.path.join(os.path.dirname(__file__), 'player.html')
         self.response.out.write(template.render(path, None))
 
-class PlayerRoomPage(webapp2.RequestHandler):
+class PlayerRoomHandler(webapp2.RequestHandler):
     def get(self, room):
         template_values = { 'room': room.upper() }
         path = os.path.join(os.path.dirname(__file__), 'player.html')
@@ -96,12 +95,12 @@ class RoomStatus(object):
         self.status = "waiting"
 
 app = webapp2.WSGIApplication([
-    ('/', MainPage),
-    ('/display/?', DisplayPage),
-    ('/display/([A-Za-z]+)', DisplayRoomPage),
-    ('/player/?', PlayerPage),
-    ('/player/([A-Za-z]+)', PlayerRoomPage),
-    ('/api/room/([A-Za-z]+)', RoomHandler),
-    #('/setname', SetNamePage),
-    ('/connected', ConnectedPage)
+    ('/', IndexHandler),
+    ('/display/?', DisplayHandler),
+    ('/display/([A-Za-z]+)', DisplayRoomHandler),
+    ('/player/?', PlayerHandler),
+    ('/player/([A-Za-z]+)', PlayerRoomHandler),
+
+    ('/api', ApiConnectHandler),
+    ('/api/room/([A-Za-z]+)', RoomHandler)
     ], debug=True)

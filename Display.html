@@ -237,7 +237,7 @@
 			var channel = new goog.appengine.Channel(token);
 			var socket = channel.open();
 			socket.onopen = function() {
-				window.setTimeout(function() { sendMessage('/connected'); }, 100);
+				window.setTimeout(function() { sendMessage('/api'); }, 100);
 			}
 			socket.onmessage = function(evt) {
 				var eventData = JSON.parse(evt.data);
