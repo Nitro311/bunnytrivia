@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Bunny Trivia</title>
+
+		<!-- Bootstrap -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
+
+		<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+		<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+		<!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+			<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+		<![endif]-->
+		
+		<style>
+			.page {
+				text-align: center;
+				display: none;
+			}
+			
+			.navbar {
+				height: 80px;
+			}
+			
+			.navbar-brand img {
+				height: 50px;
+			}
+			
+			#nickname {
+				height: 80px;
+				padding-top: 30px;
+			}
+			
+			.disconnected {
+				background-color: red;
+			}
+			
+			.connected {
+				background-color: green;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container">
+			<nav class="navbar navbar-default">
+				<div class="container-fluid">
+					<div class="navbar-header">
+						<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+							<span class="sr-only">Toggle navigation</span>
+							<span class="icon-bar"></span>
+							<span class="icon-bar"></span>
+							<span class="icon-bar"></span>
+						</button>
+						<a class="navbar-brand" href="#"><!--<img src="/images/logo.png" alt="Bunny Trivia">--></a>
+					</div>
+					<div id="navbar" class="navbar-collapse collapse">
+						<ul class="nav navbar-nav navbar-right">
+							<li><a id="nickname" href="#"></a></li>
+							<li id="state" class="disconnected">Connection</li>
+						</ul>
+					</div>
+				</div>
+			</nav>
+		
+			<div id="welcomepage" class="page">
+				<form action="/display" method="POST">
+					<a href="/player" class="btn btn-lg btn-primary" id="joinbutton">Join</a>
+					<button type="submit" class="btn btn-lg btn-success" id="startbutton">Start</button>
+				</form>
+			</div>
+		</div>
+		
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.qrcode/1.0/jquery.qrcode.min.js"></script>
+		<script src='/_ah/channel/jsapi'></script>
+		
+		<script>
+			// Cookies
+			function createCookie(name, value, days) {
+				var expires = "";
+
+				if (days) {
+					var date = new Date();
+					date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+					expires = "; expires=" + date.toGMTString();
+				}
+				document.cookie = escape(name) + "=" + escape(value) + expires + "; path=/";
+			}
+
+			function readCookie(name) {
+				var nameEQ = escape(name) + "=";
+				var ca = document.cookie.split(';');
+				for (var i = 0; i < ca.length; i++) {
+					var c = ca[i];
+					while (c.charAt(0) === ' ')
+						c = c.substring(1, c.length);
+					if (c.indexOf(nameEQ) === 0)
+						return unescape(c.substring(nameEQ.length, c.length));
+				}
+				return null;
+			}
+
+			function eraseCookie(name) {
+				createCookie(name, "", -1);
+			}
+
+			// Messaging
+			sendMessage = function(route, data) {
+				var token = '{{ channel_token }}';
+				var path = '/room/{{ room_id }}' + route;
+				console.log("POSTing to " + path + " for token " + token);
+				$.post(path, data + "&token=" + escape(token), function(data) { console.log("successful send: " + data); });
+			}
+
+			establishMessaging = function() {
+				var token = '{{ channel_token }}';
+				var channel = new goog.appengine.Channel(token);
+				var socket = channel.open();
+				socket.onopen = function() {
+					window.setTimeout(function() { sendMessage('/connect'); }, 100);
+				}
+				socket.onmessage = function(evt) {
+					var eventData = JSON.parse(evt.data);
+					console.log("Message received " + JSON.stringify(eventData));
+					handleMessage(eventData);
+				}
+			}
+			
+			handleMessage = function(data) {
+				if (data.message_type === 'connected') {
+					console.log('connected');
+					$('#state').addClass('connected');
+					$('#state').removeClass('disconnected');
+					
+					if (!nickname) {
+						$('#nickname').click();
+					}
+				} else if (data.message_type === 'newnickname') {
+					console.log('new nickname received');
+					nickname = data.newnickname;
+					$('#nickname').text(nickname);
+				} else if (data.message_type === 'room') {
+					console.log('state message received');
+				} else {
+					console.log("Unknown message received: " + JSON.stringify(data));
+				}
+			}
+			
+			// Start up commands
+			$(function() {
+				establishMessaging();
+				
+				$('#nickname').text(nickname);
+			
+				$('#nickname').on('click', function() {
+					var newNickname = prompt('Enter your nickname', nickname);
+					if (!newNickname)
+						return;
+					sendMessage('/setnickname', 'newnickname=' + newNickname);
+				});
+			});
+			
+			var room_id = '{{ room_id }}';
+			var nickname = '{{ nickname }}';			
+		</script>
+	</body>
+</html>
