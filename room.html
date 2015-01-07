@@ -16,30 +16,29 @@
 			<script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
 			<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
 		<![endif]-->
-		
+
 		<style>
 			.page {
-				text-align: center;
 				display: none;
 			}
-			
+
 			.navbar {
 				height: 80px;
 			}
-			
+
 			.navbar-brand img {
 				height: 50px;
 			}
-			
+
 			#nickname {
 				height: 80px;
 				padding-top: 30px;
 			}
-			
+
 			.disconnected {
 				background-color: red;
 			}
-			
+
 			.connected {
 				background-color: green;
 			}
@@ -66,20 +65,44 @@
 					</div>
 				</div>
 			</nav>
-		
-			<div id="welcomepage" class="page">
-				<form action="/display" method="POST">
-					<a href="/player" class="btn btn-lg btn-primary" id="joinbutton">Join</a>
-					<button type="submit" class="btn btn-lg btn-success" id="startbutton">Start</button>
-				</form>
-			</div>
+
+			<div id="waitingroompage" class="page"></div>
 		</div>
-		
+
+		<script id="waitingroomtemplate" type="text/x-handlebars-template">
+			<table class="table table-striped" id="waitingtable">
+				<thead>
+					<tr>
+						<th>Player</th>
+						<th>Ready</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% tag "#users" %}
+					<tr>
+						<td>{% tag "nickname" %}</td>
+						<td>{% tag "is_ready" %}</td>
+					</tr>
+					{% tag "/users" %}
+
+					<tr>
+						<td colspan="2"><em>Loading...</em></td>
+					</tr>
+					<tr>
+						<td colspan="2"><img src="/images/spinner.gif"></td>
+					</tr>
+				</tbody>
+			</table>
+		</script>
+
+
+
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.qrcode/1.0/jquery.qrcode.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0/handlebars.min.js"></script>
 		<script src='/_ah/channel/jsapi'></script>
-		
+
 		<script>
 			// Cookies
 			function createCookie(name, value, days) {
@@ -115,7 +138,11 @@
 				var token = '{{ channel_token }}';
 				var path = '/room/{{ room_id }}' + route;
 				console.log("POSTing to " + path + " for token " + token);
-				$.post(path, data + "&token=" + escape(token), function(data) { console.log("successful send: " + data); });
+				var postData = "token=" + escape(token);
+				if (data) {
+					postData = data + "&" + postData
+				}
+				$.post(path, postData, function(data) { console.log("successful send: " + postData); });
 			}
 
 			establishMessaging = function() {
@@ -131,13 +158,13 @@
 					handleMessage(eventData);
 				}
 			}
-			
+
 			handleMessage = function(data) {
 				if (data.message_type === 'connected') {
 					console.log('connected');
 					$('#state').addClass('connected');
 					$('#state').removeClass('disconnected');
-					
+
 					if (!nickname) {
 						$('#nickname').click();
 					}
@@ -147,17 +174,30 @@
 					$('#nickname').text(nickname);
 				} else if (data.message_type === 'room') {
 					console.log('state message received');
+					$('#waitingroompage').renderTemplate($("#waitingroomtemplate"), data.room);
+					$('#waitingroompage').show();
 				} else {
 					console.log("Unknown message received: " + JSON.stringify(data));
 				}
 			}
-			
+
+			// Templating
+			var compiled = {};
+			$.fn.renderTemplate = function(template, data) {
+				if (template instanceof jQuery) {
+					template = $(template).html();
+				}
+
+				compiled[template] = Handlebars.compile(template);
+				this.html(compiled[template](data));
+			};
+
 			// Start up commands
 			$(function() {
 				establishMessaging();
-				
+
 				$('#nickname').text(nickname);
-			
+
 				$('#nickname').on('click', function() {
 					var newNickname = prompt('Enter your nickname', nickname);
 					if (!newNickname)
@@ -165,9 +205,9 @@
 					sendMessage('/setnickname', 'newnickname=' + newNickname);
 				});
 			});
-			
+
 			var room_id = '{{ room_id }}';
-			var nickname = '{{ nickname }}';			
+			var nickname = '{{ nickname }}';
 		</script>
 	</body>
 </html>
