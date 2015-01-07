@@ -44,6 +44,10 @@
 					</div>
 				</div>
 			</nav>
+			
+			<div class="alert alert-danger" role="alert" id="alertbar">
+				{{ alert }}
+			</div>
 		
 			<div id="welcomepage" class="page">
 				<form action="/room" method="POST">
@@ -58,7 +62,9 @@
 		<script>
 			$('#joinbutton').on('click', function() {
 				var room = prompt("Enter the room code");
-				
+				if (!room)
+					return;
+				room = room.toUpperCase();
 				$('#joinbutton').attr('href','/room/' + room);				
 			});
 		</script>

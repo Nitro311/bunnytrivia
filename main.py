@@ -147,8 +147,11 @@ class BaseRoomHandler(webapp2.RequestHandler):
 
 class IndexHandler(webapp2.RequestHandler):
     def get(self):
+        template_values = {}
+        if (self.request.get("reason") == "room_not_found"):
+                template_values = { "alert": "The room was not found"}
         path = os.path.join(os.path.dirname(__file__), 'index.html')
-        self.response.out.write(template.render(path, None))
+        self.response.out.write(template.render(path, template_values))
 
 
 class RoomConnectHandler(BaseRoomHandler):
@@ -163,6 +166,9 @@ class RoomConnectHandler(BaseRoomHandler):
 
         room.upsert_user(user.user_id)
         room.save()
+
+        if DEBUG:
+            time.sleep(0.5)
 
         messenger = UserMessenger(user.user_id)
         messenger.send(ConnectedMessage())
@@ -198,6 +204,7 @@ class RoomSetNicknameHandler(BaseRoomHandler):
 class RoomStartHandler(webapp2.RequestHandler):
     def post(self):
         room = Room()
+        room.save()
         url = self.request.host_url + "/room/" + room.room_id
         logging.info("Redirecting to %s", url)
         return self.redirect(url)
@@ -208,10 +215,8 @@ class RoomViewHandler(BaseRoomHandler):
         (room, user, token) = self.get_room_user_token(room_id)
 
         if not room:
-            # TODO: Redirect them back to room creation instead of creating a new room
-            room = Room()
-            room.room_id = room_id
-            room.save()
+            url = self.request.host_url + "?reason=room_not_found"
+            return self.redirect(url)
 
         logging.info("Creating channel for %s id: %s" % (user, user.user_id))
         messenger = UserMessenger(user.user_id)
@@ -233,7 +238,6 @@ class RoomStateHandler(BaseRoomHandler):
 
         messenger = UserMessenger(self.request.get("token"))
         messenger.send(RoomWaitingStateMessage(room_id, room.get_state()))
-
 
 temporary_question = random.choice(questions).question
 
