@@ -46,7 +46,7 @@
 			</nav>
 		
 			<div id="welcomepage" class="page">
-				<form action="/display" method="POST">
+				<form action="/room" method="POST">
 					<a href="/player" class="btn btn-lg btn-primary" id="joinbutton">Join</a>
 					<button type="submit" class="btn btn-lg btn-success" id="startbutton">Start</button>
 				</form>
@@ -54,5 +54,13 @@
 		
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+		
+		<script>
+			$('#joinbutton').on('click', function() {
+				var room = prompt("Enter the room code");
+				
+				$('#joinbutton').attr('href','/room/' + room);				
+			});
+		</script>
 	</body>
 </html>

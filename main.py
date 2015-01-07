@@ -30,7 +30,7 @@ class Room(object):
         self.room_id = self.create_random_id()
         self.status = "waiting"
         self.user_ids = []
-        
+
     def upsert_user(self, user_id):
         if not user_id in self.user_ids:
             self.user_ids.append(user_id)
@@ -48,7 +48,7 @@ class Room(object):
     @staticmethod
     def load(room_id):
         return memcache.get("room-" + room_id)
-        
+
     def save(self):
         memcache.set("room-" + self.room_id, self)
 
@@ -111,7 +111,7 @@ class NewNicknameMessage(object):
     def __init__(self, newnickname):
         self.message_type = 'newnickname'
         self.newnickname = newnickname
-        
+
 class RoomWaitingStateMessage(object):
     def __init__(self, room_id, room_state):
         self.message_type = "room"
@@ -128,11 +128,11 @@ class RoomQuestionStateMessage(object):
 class BaseRoomHandler(webapp2.RequestHandler):
     def get_room_user_token(self, room_id):
         room = Room.load(room_id)
-        
+
         user_id = self.request.cookies.get("user_id")
         logging.info("user_id from cookies:" + str(user_id))
         user = None
-        
+
         if user_id:
             user = User.load(user_id)
             logging.info("loaded user from user_id:" + str(user))
@@ -141,7 +141,7 @@ class BaseRoomHandler(webapp2.RequestHandler):
             user = User()
             user_id = user.user_id
             user.save()
-            
+
         logging.info("room, user, token: (%s, %s, %s)" % (room, user, self.request.get("token")))
         return (room, user, self.request.get("token"))
 
@@ -156,20 +156,20 @@ class RoomConnectHandler(BaseRoomHandler):
         room_id = room_id.upper()
         (room, user, token) = self.get_room_user_token(room_id)
         logging.info("Room state requested for %s by %s" % (room_id, token))
-        
+
         if not room:
             logging.warn("Room does not exist")
             return
-        
+
         room.upsert_user(user.user_id)
         room.save()
 
         messenger = UserMessenger(user.user_id)
         messenger.send(ConnectedMessage())
-        
+
         if DEBUG:
             time.sleep(0.5)
-        
+
         messenger = RoomMessenger(room.room_id)
         messenger.send(RoomWaitingStateMessage(room_id, room.get_state()))
 
@@ -179,27 +179,34 @@ class RoomSetNicknameHandler(BaseRoomHandler):
         (room, user, token) = self.get_room_user_token(room_id)
         newnickname = self.request.get('newnickname').upper()
         logging.info("Renaming user %s to %s" % (user.nickname, newnickname))
-        
+
         if not room:
             logging.warn("Room does not exist")
             return
-        
+
         #TODO: Verify change
-        
+
         user.nickname = newnickname
         user.save()
-        
+
         messenger = UserMessenger(user.user_id)
         messenger.send(NewNicknameMessage(user.nickname))
 
         messenger = RoomMessenger(room.room_id)
         messenger.send(RoomWaitingStateMessage(room_id, room.get_state()))
-        
-class RoomHandler(BaseRoomHandler):
+
+class RoomStartHandler(webapp2.RequestHandler):
+    def post(self):
+        room = Room()
+        url = self.request.host_url + "/room/" + room.room_id
+        logging.info("Redirecting to %s", url)
+        return self.redirect(url)
+
+class RoomViewHandler(BaseRoomHandler):
     def get(self, room_id):
         room_id = room_id.upper()
         (room, user, token) = self.get_room_user_token(room_id)
-        
+
         if not room:
             # TODO: Redirect them back to room creation instead of creating a new room
             room = Room()
@@ -211,28 +218,29 @@ class RoomHandler(BaseRoomHandler):
         channel_token = messenger.create_channel_token()
         template_values = { 'channel_token': channel_token, 'user_id': user.user_id, 'room_id': room.room_id, 'nickname': user.nickname }
         path = os.path.join(os.path.dirname(__file__), 'room.html')
-        user_id = self.request.cookies.get("user_id")        
+        user_id = self.request.cookies.get("user_id")
         if not user_id or user.user_id != user_id:
             self.response.set_cookie('user_id', user.user_id, max_age=60 * 60 * 24, path='/room/' + room.room_id, overwrite=True)
         self.response.out.write(template.render(path, template_values))
-        
+
 class RoomStateHandler(BaseRoomHandler):
     def post(self, room_id):
         room_id = room_id.upper()
         logging.info("Room state requested for %s by %s" % (room_id, self.request.get("token")))
-        room = Room.load(room_id)        
+        room = Room.load(room_id)
         if not room:
             return
-        
+
         messenger = UserMessenger(self.request.get("token"))
         messenger.send(RoomWaitingStateMessage(room_id, room.get_state()))
 
-                
+
 temporary_question = random.choice(questions).question
 
 app = webapp2.WSGIApplication([
     ('/', IndexHandler),
-    ('/room/([A-Za-z]+)', RoomHandler),
+    ('/room/?', RoomStartHandler),
+    ('/room/([A-Za-z]+)', RoomViewHandler),
     ('/room/([A-Za-z]+)/connect', RoomConnectHandler),
     ('/room/([A-Za-z]+)/state', RoomStateHandler),
     ('/room/([A-Za-z]+)/setnickname', RoomSetNicknameHandler)
