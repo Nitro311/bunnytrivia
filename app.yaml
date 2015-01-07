@@ -12,3 +12,9 @@ handlers:
   upload: static/(.*)
 - url: /.*
   script: main.app
+
+libraries:
+- name: django
+  version: "1.5"
+- name: webapp2
+  version: "2.5.2"
