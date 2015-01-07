@@ -249,9 +249,6 @@ class RoomStateHandler(BaseRoomHandler):
 
 temporary_question = random.choice(questions).question
 
-
-template.register_template_library('tags.verbatim')
-
 app = webapp2.WSGIApplication([
     ('/', IndexHandler),
     ('/room/?', RoomStartHandler),

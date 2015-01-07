@@ -78,12 +78,12 @@
 					</tr>
 				</thead>
 				<tbody>
-					{% tag "#users" %}
+					{% templatetag openvariable %}#users{% templatetag closevariable %}
 					<tr>
-						<td>{% tag "nickname" %}</td>
-						<td>{% tag "is_ready" %}</td>
+						<td>{% templatetag openvariable %}nickname{% templatetag closevariable %}</td>
+						<td>{% templatetag openvariable %}is_ready{% templatetag closevariable %}</td>
 					</tr>
-					{% tag "/users" %}
+					{% templatetag openvariable %}/users{% templatetag closevariable %}
 
 					<tr>
 						<td colspan="2"><em>Loading...</em></td>
