@@ -31,6 +31,10 @@
 				height: 50px;
 			}
 			
+			#alertbar {
+				display: none;
+			}
+			
 		</style>
 	</head>
 	<body>
@@ -51,7 +55,7 @@
 		
 			<div id="welcomepage" class="page">
 				<form action="/room" method="POST">
-					<a href="/player" class="btn btn-lg btn-primary" id="joinbutton">Join</a>
+					<a href="#" class="btn btn-lg btn-primary" id="joinbutton">Join</a>
 					<button type="submit" class="btn btn-lg btn-success" id="startbutton">Start</button>
 				</form>
 			</div>
@@ -60,12 +64,19 @@
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
 		
 		<script>
-			$('#joinbutton').on('click', function() {
-				var room = prompt("Enter the room code");
-				if (!room)
-					return;
-				room = room.toUpperCase();
-				$('#joinbutton').attr('href','/room/' + room);				
+			// Start up commands
+			$(function() {
+				if ("{{alert}}") {
+					$('#alertbar').show();
+				}
+			
+				$('#joinbutton').on('click', function() {
+					var room = prompt("Enter the room code");
+					if (!room)
+						return;
+					room = room.toUpperCase();
+					$('#joinbutton').attr('href','/room/' + room);				
+				});
 			});
 		</script>
 	</body>
