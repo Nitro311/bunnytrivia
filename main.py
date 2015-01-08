@@ -83,34 +83,6 @@ class User(object):
     def __str__(self):
         return '<%s: %s>' % (self.__class__.__name__, json.dumps(self, default=lambda o: o.__dict__, sort_keys=True))
 
-class RoomMessenger(object):
-    """Sends a message to all users within the given room."""
-
-    def __init__(self, room_id):
-        self.room_id = room_id
-
-    def send(self, message):
-        logging.info("Sending message to room " + self.room_id)
-        room = Room.load(self.room_id)
-        for user_id in room.user_ids:
-            messager = UserMessenger(user_id)
-            messager.send(message)
-
-class UserMessenger(object):
-    """Sends a message to a given user."""
-
-    def __init__(self, user_id):
-        self.user_id = user_id
-
-    def create_channel_token(self):
-        logging.info("Create channel: " + self.user_id)
-        return channel.create_channel(self.user_id)
-
-    def send(self, message):
-        payload = json.dumps(message, default=lambda o: o.__dict__, sort_keys=True)
-        logging.info("Sending message to channel %s payload %s" % (self.user_id, payload))
-        channel.send_message(self.user_id, payload)
-
 
 class ConnectedMessage(object):
     def __init__(self):
@@ -135,6 +107,34 @@ class RoomQuestionStateMessage(object):
 
 
 class BaseRoomHandler(webapp2.RequestHandler):
+    def __init__(self, request, response):
+        self.initialize(request, response)
+        self.messages = {}
+
+    def add_user_message(self, user_id, message):
+        logging.info("Adding message to user " + user_id)
+        if user_id in self.messages:
+            self.messages[user_id].append(message)
+        else:
+            self.messages[user_id] = [message]
+
+    def add_room_message(self, room_id, message):
+        logging.info("Sending message to room " + room_id)
+        room = Room.load(room_id)
+        for user_id in room.user_ids:
+            self.add_user_message(user_id, message)
+
+    def send_messages(self):
+        for user_id in self.messages:
+            messages_to_send = self.messages[user_id]
+            payload = json.dumps(messages_to_send, default=lambda o: o.__dict__, sort_keys=True)
+            logging.info("Sending %d messages to %s" % (len(messages_to_send), user_id))
+            channel.send_message(user_id, payload)
+
+    def create_channel_token(self, user_id):
+        logging.info("Create channel: " + user_id)
+        return channel.create_channel(user_id)
+
     def get_room_user_token(self, room_id):
         room = Room.load(room_id)
 
@@ -175,17 +175,9 @@ class RoomConnectHandler(BaseRoomHandler):
         room.upsert_user(user.user_id)
         room.save()
 
-        if DEBUG:
-            time.sleep(0.5)
-
-        messenger = UserMessenger(user.user_id)
-        messenger.send(ConnectedMessage())
-
-        if DEBUG:
-            time.sleep(0.5)
-
-        messenger = RoomMessenger(room.room_id)
-        messenger.send(RoomWaitingStateMessage(room_id, room.get_state()))
+        self.add_user_message(user.user_id, ConnectedMessage())
+        self.add_room_message(room.room_id, RoomWaitingStateMessage(room.room_id, room.get_state()))
+        self.send_messages()
 
 class RoomSetNicknameHandler(BaseRoomHandler):
     def post(self, room_id):
@@ -203,11 +195,9 @@ class RoomSetNicknameHandler(BaseRoomHandler):
         user.nickname = newnickname
         user.save()
 
-        messenger = UserMessenger(user.user_id)
-        messenger.send(NewNicknameMessage(user.nickname))
-
-        messenger = RoomMessenger(room.room_id)
-        messenger.send(RoomWaitingStateMessage(room_id, room.get_state()))
+        self.add_user_message(user.user_id, NewNicknameMessage(user.nickname))
+        self.add_room_message(room.room_id, RoomWaitingStateMessage(room.room_id, room.get_state()))
+        self.send_messages()
 
 class RoomStartHandler(webapp2.RequestHandler):
     def post(self):
@@ -227,8 +217,7 @@ class RoomViewHandler(BaseRoomHandler):
             return self.redirect(url)
 
         logging.info("Creating channel for %s id: %s" % (user, user.user_id))
-        messenger = UserMessenger(user.user_id)
-        channel_token = messenger.create_channel_token()
+        channel_token = self.create_channel_token(user.user_id)
         template_values = { 'channel_token': channel_token, 'user_id': user.user_id, 'room_id': room.room_id, 'nickname': user.nickname }
         path = os.path.join(os.path.dirname(__file__), 'room.html')
         user_id = self.request.cookies.get("user_id")
@@ -244,8 +233,8 @@ class RoomStateHandler(BaseRoomHandler):
         if not room:
             return
 
-        messenger = UserMessenger(self.request.get("token"))
-        messenger.send(RoomWaitingStateMessage(room_id, room.get_state()))
+        self.add_user_message(user.user_id, RoomWaitingStateMessage(room.room_id, room.get_state()))
+        self.send_messages()
 
 temporary_question = random.choice(questions).question
 
