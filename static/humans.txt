@@ -1,0 +1,16 @@
+# humanstxt.org/
+# The humans responsible & technology colophon
+
+# TEAM
+
+    <name> -- <role> -- <twitter>
+
+# THANKS
+
+	
+
+# TECHNOLOGY COLOPHON
+
+    HTML5, CSS3, JavaScript, jQuery, Handlebars
+    Python 2.7, Google App Engine, webapp2, Django
+	
