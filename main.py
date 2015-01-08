@@ -25,6 +25,9 @@ class UserState(object):
         self.nickname = nickname
         self.is_ready = is_ready
 
+    def __str__(self):
+        return '<%s: %s>' % (self.__class__.__name__, json.dumps(self, default=lambda o: o.__dict__, sort_keys=True))
+
 class Room(object):
     def __init__(self):
         self.room_id = self.create_random_id()
@@ -52,6 +55,9 @@ class Room(object):
     def save(self):
         memcache.set("room-" + self.room_id, self)
 
+    def __str__(self):
+        return '<%s: %s>' % (self.__class__.__name__, json.dumps(self, default=lambda o: o.__dict__, sort_keys=True))
+
 class User(object):
     def __init__(self):
         self.user_id = self.create_random_id()
@@ -73,6 +79,9 @@ class User(object):
 
     def save(self):
         memcache.set("user-" + self.user_id, self)
+
+    def __str__(self):
+        return '<%s: %s>' % (self.__class__.__name__, json.dumps(self, default=lambda o: o.__dict__, sort_keys=True))
 
 class RoomMessenger(object):
     """Sends a message to all users within the given room."""
@@ -152,7 +161,6 @@ class IndexHandler(webapp2.RequestHandler):
                 template_values = { "alert": "The room was not found"}
         path = os.path.join(os.path.dirname(__file__), 'index.html')
         self.response.out.write(template.render(path, template_values))
-
 
 class RoomConnectHandler(BaseRoomHandler):
     def post(self, room_id):
