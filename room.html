@@ -63,12 +63,17 @@
 			</nav>
 
 			<div id="main" class="page">
-				<div style="text-align: center">
-					<img src="/images/spinner.gif">
-				</div>
 			</div>
 		</div>
 
+		<script id="newnicknametemplate" type="text/x-handlebars-template">
+			<form id="newnicknameform" onsubmit="setNickname()">
+				<input type="text" id="newnickname" value="{% templatetag openvariable %}this{% templatetag closevariable %}" autofocus />
+				<button type="submit" class="btn btn-lg btn-success">Change</button>
+			</form>
+		</script>
+
+		
 		<script id="waitingroomtemplate" type="text/x-handlebars-template">
 			<table class="table table-striped" id="waitingtable">
 				<thead>
@@ -154,7 +159,7 @@
 					$('#state').removeClass('disconnected');
 
 					if (!nickname) {
-						$('#nickname').click();
+						$('#main').renderTemplate($("#newnicknametemplate"), nickname);
 					}
 				} else if (data.message_type === 'newnickname') {
 					console.log('New nickname received');
@@ -178,18 +183,30 @@
 				compiled[template] = Handlebars.compile(template);
 				this.html(compiled[template](data));
 			};
+			
+			
+			// Miscellaneous
+			function loading() {
+				$('#main').html('<div style="text-align: center"><img src="/images/spinner.gif"></div>');
+			}
+			
+			function setNickname() {
+				newNickname = $('#newnicknameform input').val();
+				if (newNickname && newNickname !== nickname) {
+					sendMessage('/setnickname', 'newnickname=' + newNickname);	
+				}
+				return false;
+			}
 
 			// Start up commands
 			$(function() {
+				loading();
 				establishMessaging();
 
 				$('#nickname').text(nickname);
 
 				$('#nickname').on('click', function() {
-					var newNickname = prompt('Enter your nickname', nickname);
-					if (!newNickname)
-						return;
-					sendMessage('/setnickname', 'newnickname=' + newNickname);
+					$('#main').renderTemplate($("#newnicknametemplate"), nickname);
 				});
 			});
 
