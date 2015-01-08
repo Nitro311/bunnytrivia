@@ -135,7 +135,7 @@ class BaseRoomHandler(webapp2.RequestHandler):
         logging.info("Create channel: " + user_id)
         return channel.create_channel(user_id)
 
-    def get_room_user_token(self, room_id):
+    def get_room_and_user(self, room_id):
         room = Room.load(room_id)
 
         user_id = self.request.cookies.get("user_id")
@@ -151,8 +151,8 @@ class BaseRoomHandler(webapp2.RequestHandler):
             user_id = user.user_id
             user.save()
 
-        logging.info("room, user, token: (%s, %s, %s)" % (room, user, self.request.get("token")))
-        return (room, user, self.request.get("token"))
+        logging.info("room, user: (%s, %s)" % (room, user))
+        return (room, user)
 
 class IndexHandler(webapp2.RequestHandler):
     def get(self):
@@ -165,8 +165,8 @@ class IndexHandler(webapp2.RequestHandler):
 class RoomConnectHandler(BaseRoomHandler):
     def post(self, room_id):
         room_id = room_id.upper()
-        (room, user, token) = self.get_room_user_token(room_id)
-        logging.info("Room state requested for %s by %s" % (room_id, token))
+        (room, user) = self.get_room_and_user(room_id)
+        logging.info("Room state requested for %s by %s" % (room_id, user.user_id))
 
         if not room:
             logging.warn("Room does not exist")
@@ -182,7 +182,7 @@ class RoomConnectHandler(BaseRoomHandler):
 class RoomSetNicknameHandler(BaseRoomHandler):
     def post(self, room_id):
         room_id = room_id.upper()
-        (room, user, token) = self.get_room_user_token(room_id)
+        (room, user) = self.get_room_and_user(room_id)
         newnickname = self.request.get('newnickname').upper()
         logging.info("Renaming user %s to %s" % (user.nickname, newnickname))
 
@@ -210,7 +210,7 @@ class RoomStartHandler(webapp2.RequestHandler):
 class RoomViewHandler(BaseRoomHandler):
     def get(self, room_id):
         room_id = room_id.upper()
-        (room, user, token) = self.get_room_user_token(room_id)
+        (room, user) = self.get_room_and_user(room_id)
 
         if not room:
             url = self.request.host_url + "?reason=room_not_found"
@@ -222,19 +222,8 @@ class RoomViewHandler(BaseRoomHandler):
         path = os.path.join(os.path.dirname(__file__), 'room.html')
         user_id = self.request.cookies.get("user_id")
         if not user_id or user.user_id != user_id:
-            self.response.set_cookie('user_id', user.user_id, max_age=60 * 60 * 24, path='/room/' + room.room_id, overwrite=True)
+            self.response.set_cookie('user_id', user.user_id, max_age=60 * 60 * 24, overwrite=True)
         self.response.out.write(template.render(path, template_values))
-
-class RoomStateHandler(BaseRoomHandler):
-    def post(self, room_id):
-        room_id = room_id.upper()
-        logging.info("Room state requested for %s by %s" % (room_id, self.request.get("token")))
-        room = Room.load(room_id)
-        if not room:
-            return
-
-        self.add_user_message(user.user_id, RoomWaitingStateMessage(room.room_id, room.get_state()))
-        self.send_messages()
 
 temporary_question = random.choice(questions).question
 
@@ -243,6 +232,5 @@ app = webapp2.WSGIApplication([
     ('/room/?', RoomStartHandler),
     ('/room/([A-Za-z]+)', RoomViewHandler),
     ('/room/([A-Za-z]+)/connect', RoomConnectHandler),
-    ('/room/([A-Za-z]+)/state', RoomStateHandler),
     ('/room/([A-Za-z]+)/setnickname', RoomSetNicknameHandler)
     ], debug=True)

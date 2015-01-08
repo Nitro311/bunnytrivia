@@ -128,14 +128,9 @@
 
 			// Messaging
 			sendMessage = function(route, data) {
-				var token = '{{ channel_token }}';
 				var path = '/room/{{ room_id }}' + route;
-				console.log("POSTing to " + path + " for token " + token);
-				var postData = "token=" + escape(token);
-				if (data) {
-					postData = data + "&" + postData
-				}
-				$.post(path, postData, function(data) { console.log("successful send: " + postData); });
+				console.log("POST: " + path + " " + (data || ''));
+				$.post(path, data);
 			}
 
 			establishMessaging = function() {
@@ -147,14 +142,14 @@
 				}
 				socket.onmessage = function(evt) {
 					var eventData = JSON.parse(evt.data);
-					console.log("Message received " + JSON.stringify(eventData));
+					console.log("Message(s) received " + JSON.stringify(eventData));
 					$.each(eventData, function(index, value) { handleMessage(value); });
 				}
 			}
 
 			handleMessage = function(data) {
 				if (data.message_type === 'connected') {
-					console.log('connected');
+					console.log('Connect message received');
 					$('#state').addClass('connected');
 					$('#state').removeClass('disconnected');
 
@@ -162,11 +157,11 @@
 						$('#nickname').click();
 					}
 				} else if (data.message_type === 'newnickname') {
-					console.log('new nickname received');
+					console.log('New nickname received');
 					nickname = data.newnickname;
 					$('#nickname').text(nickname);
 				} else if (data.message_type === 'room') {
-					console.log('state message received');
+					console.log('Room state received');
 					$('#main').renderTemplate($("#waitingroomtemplate"), data.room);
 				} else {
 					console.log("Unknown message received: " + JSON.stringify(data));
