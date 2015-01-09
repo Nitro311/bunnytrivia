@@ -38,6 +38,13 @@
 			.connected {
 				background-color: green;
 			}
+			
+			h1 {
+				
+			}
+			input[type=text]{
+			text-transform:uppercase
+			}
 		</style>
 	</head>
 	<body>
@@ -67,7 +74,7 @@
 		</div>
 
 		<script id="newnicknametemplate" type="text/x-handlebars-template">
-			<form id="newnicknameform" onsubmit="setNickname()">
+			<form id="newnicknameform" onsubmit="return setNickname()">
 				<input type="text" id="newnickname" value="{% templatetag openvariable %}this{% templatetag closevariable %}" autofocus />
 				<button type="submit" class="btn btn-lg btn-success">Change</button>
 			</form>
@@ -91,6 +98,45 @@
 					{% templatetag openvariable %}/users{% templatetag closevariable %}
 				</tbody>
 			</table>
+			<button id="startgamenow" class="btn btn-lg btn-success">Start Now</button>
+		</script>
+		
+		<script id="startroundtemplate" type="text/x-handlebars-template">
+			<div style="text-align:center">
+				<h1> Round {% templatetag openvariable %}round{% templatetag closevariable %}</h1>
+			</div>			
+		</script>
+		<script id="askingquestiontemplate" type="text/x-handlebars-template">
+			<div style="text-align:center">
+				<h1>{% templatetag openvariable %}question{% templatetag closevariable %}</h1>
+				<form id="answerform" onsubmit="return sendAnswer()">
+					<input type="text" id="answer"  autofocus autocomplete="off"/>
+					<button type="submit" class="btn btn-lg btn-success">Ok</button>
+				</form>				
+			</div>			
+		</script>
+		
+		<script id="answeredquestiontemplate" type="text/x-handlebars-template">
+			<div style="text-align:center">
+				<h1>Question is over!</h1>
+				<h1>{% templatetag openvariable %}question{% templatetag closevariable %}</h1>
+				<table class="table table-striped" id="waitingtable">
+					<thead>
+						<tr>
+							<th>Player:</th>
+							<th>Answer:</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% templatetag openvariable %}#answers{% templatetag closevariable %}
+						<tr>
+							<td>{% templatetag openvariable %}nickname{% templatetag closevariable %}</td>
+							<td>{% templatetag openvariable %}answer{% templatetag closevariable %}</td>
+						</tr>
+						{% templatetag openvariable %}/answers{% templatetag closevariable %}
+					</tbody>
+				</table>
+			</div>			
 		</script>
 
 
@@ -167,7 +213,18 @@
 					$('#nickname').text(nickname);
 				} else if (data.message_type === 'room') {
 					console.log('Room state received');
-					$('#main').renderTemplate($("#waitingroomtemplate"), data.room);
+					if (data.room.status === 'waiting') {
+						$('#main').renderTemplate($("#waitingroomtemplate"), data.room);
+					} else if (data.room.status === 'started') {
+						$('#main').renderTemplate($("#startroundtemplate"), data.room);
+						// TODO: Set timer and re-request game state in x seconds
+					} else if (data.room.status === 'askingquestion') {
+						$('#main').renderTemplate($("#askingquestiontemplate"), data.room);
+					} else if (data.room.status === 'answeredquestion') {
+						$('#main').renderTemplate($("#answeredquestiontemplate"), data.room);
+					} else {
+						console.log("Unknown room status: " + JSON.stringify(data));
+					}
 				} else {
 					console.log("Unknown message received: " + JSON.stringify(data));
 				}
@@ -197,6 +254,14 @@
 				}
 				return false;
 			}
+			
+			function sendAnswer() {
+				answer = $('#answerform input').val();
+				if (answer) {
+					sendMessage('/sendanswer', 'answer=' + answer);	
+				}
+				return false;
+			}
 
 			// Start up commands
 			$(function() {
@@ -208,8 +273,12 @@
 				$('#nickname').on('click', function() {
 					$('#main').renderTemplate($("#newnicknametemplate"), nickname);
 				});
+				
+				$('body').on('click', '#startgamenow', function() {
+					sendMessage('/startgame');
+				});				
 			});
-
+			
 			var room_id = '{{ room_id }}';
 			var nickname = '{{ nickname }}';
 		</script>

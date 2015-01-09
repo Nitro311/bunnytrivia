@@ -30,9 +30,27 @@ class UserState(object):
 
 class Room(object):
     def __init__(self):
+        self.round=1
         self.room_id = self.create_random_id()
         self.status = "waiting"
         self.user_ids = []
+        self.question=None
+        self.answers={}
+
+    def set_answer(self,user_id,answer):
+        self.answers[user_id] = answer
+        if len(self.answers) == len(self.user_ids):
+            # TODO: Do scoring here
+            logging.info("Everyone has answered the question")
+            self.status = "answeredquestion"
+
+    def start_game(self):
+        self.status="started"
+        self.round=1
+        # HACK: Shortcutting the round process
+        self.status = 'askingquestion'
+        self.question=random.choice(questions)
+        self.answers={}
 
     def upsert_user(self, user_id):
         if not user_id in self.user_ids:
@@ -46,7 +64,14 @@ class Room(object):
 
     def get_state(self):
         users = [User.load(user_id) for user_id in self.user_ids]
-        return dict(status = self.status, users = [UserState(user.nickname, user.is_ready) for user in users])
+        return dict(
+            status = self.status,
+            users = [UserState(user.nickname, user.is_ready) for user in users],
+            round=self.round,
+            question = self.question.question if self.question else None,
+            answerers = self.answers.keys() if self.answers else [],
+            answers = [dict(nickname = user.nickname, answer = self.answers[user.user_id]) for user in users] if self.status == "answeredquestion" and self.answers else None
+        )
 
     @staticmethod
     def load(room_id):
@@ -225,6 +250,41 @@ class RoomViewHandler(BaseRoomHandler):
             self.response.set_cookie('user_id', user.user_id, max_age=60 * 60 * 24, overwrite=True)
         self.response.out.write(template.render(path, template_values))
 
+class RoomStartGameHandler(BaseRoomHandler):
+    def post(self, room_id):
+        room_id = room_id.upper()
+        (room, user) = self.get_room_and_user(room_id)
+        logging.info("Game Start requested for %s by %s" % (room_id, user.user_id))
+
+        if not room:
+            logging.warn("Room does not exist")
+            return
+
+        room.start_game()
+        room.save()
+
+        self.add_room_message(room.room_id, RoomWaitingStateMessage(room.room_id, room.get_state()))
+        self.send_messages()
+
+class RoomSendAnswerHandler(BaseRoomHandler):
+    def post(self, room_id):
+        room_id = room_id.upper()
+        (room, user) = self.get_room_and_user(room_id)
+        answer = self.request.get('answer').upper()
+        logging.info("Answer %s received %s by %s" % (answer,room_id, user.user_id))
+
+
+        if not room:
+            logging.warn("Room does not exist")
+            return
+
+        room.set_answer(user.user_id, answer)
+        room.save()
+
+        self.add_room_message(room.room_id, RoomWaitingStateMessage(room.room_id, room.get_state()))
+        self.send_messages()
+
+
 temporary_question = random.choice(questions).question
 
 app = webapp2.WSGIApplication([
@@ -232,5 +292,7 @@ app = webapp2.WSGIApplication([
     ('/room/?', RoomStartHandler),
     ('/room/([A-Za-z]+)', RoomViewHandler),
     ('/room/([A-Za-z]+)/connect', RoomConnectHandler),
-    ('/room/([A-Za-z]+)/setnickname', RoomSetNicknameHandler)
+    ('/room/([A-Za-z]+)/sendanswer', RoomSendAnswerHandler),
+    ('/room/([A-Za-z]+)/setnickname', RoomSetNicknameHandler),
+    ('/room/([A-Za-z]+)/startgame', RoomStartGameHandler)
     ], debug=True)
