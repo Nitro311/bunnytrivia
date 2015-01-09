@@ -72,8 +72,12 @@
 
 		<script id="newnicknametemplate" type="text/x-handlebars-template">
 			<form id="newnicknameform" onsubmit="return setNickname()">
-				<input type="text" id="newnickname" placeholder="Enter nickname" value="{% templatetag openvariable %}this{% templatetag closevariable %}" autofocus />
-				<button type="submit" class="btn btn-small btn-primary">Set</button>
+				<div class="input-group input-group-lg">
+					<input class="form-control" type="text" id="newnickname" placeholder="Enter nickname" value="{% templatetag openvariable %}this{% templatetag closevariable %}" autofocus />
+					<span class="input-group-btn">
+						<button type="submit" class="btn btn-default">Set</button>
+					</span>
+				</div>
 			</form>
 		</script>
 
