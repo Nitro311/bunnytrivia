@@ -18,17 +18,13 @@
 		<![endif]-->
 
 		<style>
-			.navbar {
-				height: 80px;
-			}
-
 			.navbar-brand img {
-				height: 50px;
+				max-height: 50px;
+				max-width: 70%;
 			}
 
-			#nickname {
-				height: 80px;
-				padding-top: 30px;
+			#nickname form {
+				display: inline;
 			}
 
 			.disconnected {
@@ -43,33 +39,33 @@
 
 			}
 
-			input[type=text]{
-				text-transform:uppercase
+			input[type=text] {
+				text-transform: uppercase;
 			}
 		</style>
 	</head>
 	<body>
-		<div class="container">
-			<nav class="navbar navbar-default">
-				<div class="container-fluid">
-					<div class="navbar-header">
-						<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-							<span class="sr-only">Toggle navigation</span>
-							<span class="icon-bar"></span>
-							<span class="icon-bar"></span>
-							<span class="icon-bar"></span>
-						</button>
-						<a class="navbar-brand" href="#"><img src="/images/logo.png" alt="Bunny Trivia"></a>
-					</div>
-					<div id="navbar" class="navbar-collapse collapse">
-						<ul class="nav navbar-nav navbar-right">
-							<li id="nickname"></li>
-							<li id="state" class="disconnected">Connection</li>
-						</ul>
-					</div>
+		<nav class="navbar navbar-default">
+			<div class="container">
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+						<span class="sr-only">Toggle navigation</span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
+					<a class="navbar-brand" href="#"><img src="/images/logo.png" alt="Bunny Trivia"></a>
 				</div>
-			</nav>
+				<div id="navbar" class="collapse navbar-collapse">
+					<ul class="nav navbar-nav navbar-right">
+						<li id="nickname"></li>
+						<li id="state" class="disconnected">Connection</li>
+					</ul>
+				</div>
+			</div>
+		</nav>
 
+		<div class="container">
 			<div id="main" class="page">
 			</div>
 		</div>
