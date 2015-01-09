@@ -38,12 +38,13 @@
 			.connected {
 				background-color: green;
 			}
-			
+
 			h1 {
-				
+
 			}
+
 			input[type=text]{
-			text-transform:uppercase
+				text-transform:uppercase
 			}
 		</style>
 	</head>
@@ -62,7 +63,7 @@
 					</div>
 					<div id="navbar" class="navbar-collapse collapse">
 						<ul class="nav navbar-nav navbar-right">
-							<li><a id="nickname" href="#"></a></li>
+							<li id="nickname"></li>
 							<li id="state" class="disconnected">Connection</li>
 						</ul>
 					</div>
@@ -75,12 +76,12 @@
 
 		<script id="newnicknametemplate" type="text/x-handlebars-template">
 			<form id="newnicknameform" onsubmit="return setNickname()">
-				<input type="text" id="newnickname" value="{% templatetag openvariable %}this{% templatetag closevariable %}" autofocus />
-				<button type="submit" class="btn btn-lg btn-success">Change</button>
+				<input type="text" id="newnickname" placeholder="Enter nickname" value="{% templatetag openvariable %}this{% templatetag closevariable %}" autofocus />
+				<button type="submit" class="btn btn-small btn-primary">Set</button>
 			</form>
 		</script>
 
-		
+
 		<script id="waitingroomtemplate" type="text/x-handlebars-template">
 			<table class="table table-striped" id="waitingtable">
 				<thead>
@@ -100,11 +101,11 @@
 			</table>
 			<button id="startgamenow" class="btn btn-lg btn-success">Start Now</button>
 		</script>
-		
+
 		<script id="startroundtemplate" type="text/x-handlebars-template">
 			<div style="text-align:center">
 				<h1> Round {% templatetag openvariable %}round{% templatetag closevariable %}</h1>
-			</div>			
+			</div>
 		</script>
 		<script id="askingquestiontemplate" type="text/x-handlebars-template">
 			<div style="text-align:center">
@@ -112,10 +113,10 @@
 				<form id="answerform" onsubmit="return sendAnswer()">
 					<input type="text" id="answer"  autofocus autocomplete="off"/>
 					<button type="submit" class="btn btn-lg btn-success">Ok</button>
-				</form>				
-			</div>			
+				</form>
+			</div>
 		</script>
-		
+
 		<script id="answeredquestiontemplate" type="text/x-handlebars-template">
 			<div style="text-align:center">
 				<h1>Question is over!</h1>
@@ -136,7 +137,7 @@
 						{% templatetag openvariable %}/answers{% templatetag closevariable %}
 					</tbody>
 				</table>
-			</div>			
+			</div>
 		</script>
 
 
@@ -145,23 +146,24 @@
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.qrcode/1.0/jquery.qrcode.min.js"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0/handlebars.min.js"></script>
-		<script src='/_ah/channel/jsapi'></script>
+		<script src="/_ah/channel/jsapi"></script>
 
 		<script>
+
 			// Cookies
 			function createCookie(name, value, days) {
-				var expires = "";
+				var expires = '';
 
 				if (days) {
 					var date = new Date();
 					date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-					expires = "; expires=" + date.toGMTString();
+					expires = '; expires=' + date.toGMTString();
 				}
-				document.cookie = escape(name) + "=" + escape(value) + expires + "; path=/";
+				document.cookie = escape(name) + '=' + escape(value) + expires + '; path=/';
 			}
 
 			function readCookie(name) {
-				var nameEQ = escape(name) + "=";
+				var nameEQ = escape(name) + '=';
 				var ca = document.cookie.split(';');
 				for (var i = 0; i < ca.length; i++) {
 					var c = ca[i];
@@ -174,59 +176,59 @@
 			}
 
 			function eraseCookie(name) {
-				createCookie(name, "", -1);
+				createCookie(name, '', -1);
 			}
 
 			// Messaging
-			sendMessage = function(route, data) {
+			function sendMessage(route, data) {
 				var path = '/room/{{ room_id }}' + route;
-				console.log("POST: " + path + " " + (data || ''));
+				console.log('POST: ' + path + " " + (data || ''));
 				$.post(path, data);
 			}
 
-			establishMessaging = function() {
+			function establishMessaging() {
 				var token = '{{ channel_token }}';
 				var channel = new goog.appengine.Channel(token);
 				var socket = channel.open();
 				socket.onopen = function() {
 					window.setTimeout(function() { sendMessage('/connect'); }, 100);
-				}
+				};
 				socket.onmessage = function(evt) {
 					var eventData = JSON.parse(evt.data);
-					console.log("Message(s) received " + JSON.stringify(eventData));
+					console.log('Message(s) received ' + JSON.stringify(eventData));
 					$.each(eventData, function(index, value) { handleMessage(value); });
-				}
+				};
 			}
 
-			handleMessage = function(data) {
+			function handleMessage(data) {
 				if (data.message_type === 'connected') {
 					console.log('Connect message received');
 					$('#state').addClass('connected');
 					$('#state').removeClass('disconnected');
 
 					if (!nickname) {
-						$('#main').renderTemplate($("#newnicknametemplate"), nickname);
+						$('#nickname').renderTemplate($('#newnicknametemplate'), nickname);
 					}
 				} else if (data.message_type === 'newnickname') {
 					console.log('New nickname received');
 					nickname = data.newnickname;
-					$('#nickname').text(nickname);
+					drawNickname();
 				} else if (data.message_type === 'room') {
 					console.log('Room state received');
 					if (data.room.status === 'waiting') {
-						$('#main').renderTemplate($("#waitingroomtemplate"), data.room);
+						$('#main').renderTemplate($('#waitingroomtemplate'), data.room);
 					} else if (data.room.status === 'started') {
-						$('#main').renderTemplate($("#startroundtemplate"), data.room);
+						$('#main').renderTemplate($('#startroundtemplate'), data.room);
 						// TODO: Set timer and re-request game state in x seconds
 					} else if (data.room.status === 'askingquestion') {
-						$('#main').renderTemplate($("#askingquestiontemplate"), data.room);
+						$('#main').renderTemplate($('#askingquestiontemplate'), data.room);
 					} else if (data.room.status === 'answeredquestion') {
-						$('#main').renderTemplate($("#answeredquestiontemplate"), data.room);
+						$('#main').renderTemplate($('#answeredquestiontemplate'), data.room);
 					} else {
-						console.log("Unknown room status: " + JSON.stringify(data));
+						console.log('Unknown room status: ' + JSON.stringify(data));
 					}
 				} else {
-					console.log("Unknown message received: " + JSON.stringify(data));
+					console.log('Unknown message received: ' + JSON.stringify(data));
 				}
 			}
 
@@ -240,45 +242,58 @@
 				compiled[template] = Handlebars.compile(template);
 				this.html(compiled[template](data));
 			};
-			
-			
+
+
 			// Miscellaneous
-			function loading() {
+			function showLoading() {
 				$('#main').html('<div style="text-align: center"><img src="/images/spinner.gif"></div>');
 			}
-			
+
+			function drawNickname() {
+				$('#nickname').html('<a href="#"></a>');
+				$('#nickname a').text(nickname);
+			}
+
 			function setNickname() {
 				newNickname = $('#newnicknameform input').val();
-				if (newNickname && newNickname !== nickname) {
-					sendMessage('/setnickname', 'newnickname=' + newNickname);	
+				if (newNickname && newNickname.trim() && newNickname !== nickname) {
+					sendMessage('/setnickname', { 'newnickname': newNickname.trim() });
+				} else if (nickname) {
+					drawNickname();
 				}
 				return false;
 			}
-			
+
 			function sendAnswer() {
 				answer = $('#answerform input').val();
 				if (answer) {
-					sendMessage('/sendanswer', 'answer=' + answer);	
+					sendMessage('/sendanswer', 'answer=' + answer);
 				}
 				return false;
 			}
-
-			// Start up commands
-			$(function() {
-				loading();
+			
+			function startupCommands() {
+				drawNickname();
+				showLoading();
 				establishMessaging();
 
-				$('#nickname').text(nickname);
-
-				$('#nickname').on('click', function() {
-					$('#main').renderTemplate($("#newnicknametemplate"), nickname);
+				$('#nickname').on('click', 'a', function() {
+					$('#nickname').renderTemplate($('#newnicknametemplate'), nickname);
 				});
-				
+
 				$('body').on('click', '#startgamenow', function() {
-					sendMessage('/startgame');
-				});				
+					if (nickname) {
+						sendMessage('/startgame');
+					} else {
+						$('#nickname input').focus();
+					}
+				});
+			}
+
+			$(function() {
+				startupCommands();
 			});
-			
+
 			var room_id = '{{ room_id }}';
 			var nickname = '{{ nickname }}';
 		</script>
