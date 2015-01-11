@@ -91,15 +91,35 @@
 					</tr>
 				</thead>
 				<tbody>
-					{% templatetag openvariable %}#users{% templatetag closevariable %}
+					{% templatetag openvariable %}#room.users{% templatetag closevariable %}
 					<tr>
 						<td>{% templatetag openvariable %}nickname{% templatetag closevariable %}</td>
 						<td>{% templatetag openvariable %}is_ready{% templatetag closevariable %}</td>
 					</tr>
-					{% templatetag openvariable %}/users{% templatetag closevariable %}
+					{% templatetag openvariable %}/room.users{% templatetag closevariable %}
 				</tbody>
 			</table>
 			<button id="startgamenow" class="btn btn-lg btn-success">Start Now</button>
+
+			<p></p>
+			
+			<div class="panel panel-success">
+				<div class="panel-heading">
+					<h3 class="panel-title">Invite others</h3>
+				</div>
+				<div class="panel-body">
+					<div class="col-md-6">
+						<h3>Room code:</h3>
+						<h1><div id="roomcode">{% templatetag openvariable %}room_id{% templatetag closevariable %}</div></h1>
+						Visit
+						<span id="roomurl">{% templatetag openvariable %}room_url{% templatetag closevariable %}</span>
+					</div>
+					<div class="col-md-6">
+						Or scan:
+						<div id="roomqr"></div>
+					</div>
+				</div>
+			</div>
 		</script>
 
 		<script id="startroundtemplate" type="text/x-handlebars-template">
@@ -215,8 +235,17 @@
 					drawNickname();
 				} else if (data.message_type === 'room') {
 					console.log('Room state received');
-					if (data.room.status === 'waiting') {
-						$('#main').renderTemplate($('#waitingroomtemplate'), data.room);
+					if (data.room.status === 'waiting') {	
+						var url = window.location;
+						var roomUrl = url.protocol + "//" + url.hostname + ":" + url.port + "/room/" + room_id;
+						$('#main').renderTemplate($('#waitingroomtemplate'), { "room": data.room, "room_id": room_id, "room_url": roomUrl });
+						$('#roomqr').qrcode({
+							text: roomUrl,
+							height: 128,
+							width: 128,
+							background: '#ffffff',
+							foreground: '#000000'
+						});
 					} else if (data.room.status === 'started') {
 						$('#main').renderTemplate($('#startroundtemplate'), data.room);
 						// TODO: Set timer and re-request game state in x seconds
