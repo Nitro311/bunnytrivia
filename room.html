@@ -131,7 +131,7 @@
 			<div style="text-align:center">
 				<h1>{% templatetag openvariable %}question{% templatetag closevariable %}</h1>
 				<form id="answerform" onsubmit="return sendAnswer()">
-					<input type="text" id="answer"  autofocus autocomplete="off"/>
+					<input type="text" id="answer" autofocus autocomplete="off"/>
 					<button type="submit" class="btn btn-lg btn-success">Ok</button>
 				</form>
 			</div>
@@ -237,7 +237,11 @@
 					console.log('Room state received');
 					if (data.room.status === 'waiting') {	
 						var url = window.location;
-						var roomUrl = url.protocol + "//" + url.hostname + ":" + url.port + "/room/" + room_id;
+						var port = ":" + url.port;
+						if (port === ":") {
+							port = "";
+						}
+						var roomUrl = url.protocol + "//" + url.hostname + port + "/room/" + room_id;
 						$('#main').renderTemplate($('#waitingroomtemplate'), { "room": data.room, "room_id": room_id, "room_url": roomUrl });
 						$('#roomqr').qrcode({
 							text: roomUrl,
