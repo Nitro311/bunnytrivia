@@ -15,23 +15,14 @@ from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 from questions import questions
 
-DEBUG = False
-
-if os.environ.get('SERVER_SOFTWARE','').startswith('Development'):
-    DEBUG = True
-
 class DateTimeJSONEncoder(json.JSONEncoder):
-    #def __init__(self):
-        #self.default = lambda o: o.__dict__
-        #self.sort_keys = True
     def default(self, obj):
         self.sort_keys = True
         if isinstance(obj, datetime.datetime):
-            return obj.ctime() + ' UTC'
+            return obj.isoformat() + ' UTC'
         elif isinstance(obj, datetime.date):
             return obj.isoformat() + ' UTC'
         else:
-            ##return super(DateTimeJSONEncoder, self).default(obj)
             return obj.__dict__
 
 class UserState(object):
@@ -53,17 +44,14 @@ class Room(object):
         self.host=None
         self.time_to_switch = None
 
-    def set_guess(self,user_id,guess):
-        self.guesses[user_id] = guess
-        if len(self.guesses) == len(self.user_ids):
-            # TODO: Do scoring here
-            logging.info("Everyone has answered the question")
-            self.status = "answeredquestion"
+    def set_guess(self, user_id, guess):
+        if self.status == 'questionguess':
+            self.guesses[user_id] = guess
 
     def start_game(self):
         self.status="round"
         self.round=1
-        self.time_to_switch=datetime.datetime.now()+datetime.timedelta(0,5)
+        self.time_to_switch = datetime.datetime.now() + datetime.timedelta(0,5)
 
     def upsert_user(self, user_id):
         if not user_id in self.user_ids:
@@ -73,30 +61,30 @@ class Room(object):
         if self.time_to_switch < datetime.datetime.now():
             if self.status == "round":
                 self.status = "questionguess"
-                self.time_to_switch = datetime.datetime.now()+datetime.timedelta(0,5)
+                self.time_to_switch = datetime.datetime.now() + datetime.timedelta(0,5)
                 self.guesses = {}
                 self.question = random.choice(questions)
                 self.save()
-            elif self.status=="questionguess":
-                self.status="questionanswer"
-                self.time_to_switch=datetime.datetime.now()+datetime.timedelta(0,5)
+            elif self.status == "questionguess":
+                self.status = "questionanswer"
+                self.time_to_switch = datetime.datetime.now() + datetime.timedelta(0,5)
                 self.save()
-            elif self.status=="questionanswer":
-                self.status="questionreveal"
-                self.time_to_switch=datetime.datetime.now()+datetime.timedelta(0,5)
+            elif self.status == "questionanswer":
+                self.status = "questionreveal"
+                self.time_to_switch = datetime.datetime.now() + datetime.timedelta(0,5)
                 self.save()
-            elif self.status=="questionreveal":
-                self.status="questionscore"
-                self.time_to_switch=datetime.datetime.now()+datetime.timedelta(0,5)
+            elif self.status == "questionreveal":
+                self.status = "questionscore"
+                self.time_to_switch = datetime.datetime.now() + datetime.timedelta(0,5)
                 self.save()
-            elif self.status=="questionscore":
-                self.status="score"
-                self.time_to_switch=datetime.datetime.now()+datetime.timedelta(0,5)
+            elif self.status == "questionscore":
+                self.status = "score"
+                self.time_to_switch  =datetime.datetime.now()+datetime.timedelta(0,5)
                 self.save()
-            elif self.status=="score":
-                self.status="round"
+            elif self.status == "score":
+                self.status = "round"
                 self.round = self.round + 1
-                self.time_to_switch=datetime.datetime.now()+datetime.timedelta(0,5)
+                self.time_to_switch = datetime.datetime.now() + datetime.timedelta(0,5)
                 self.save()
     def create_random_id(self):
         letters = string.ascii_uppercase
@@ -109,6 +97,7 @@ class Room(object):
         return memcache.get("room-" + room_id)
 
     def save(self):
+        # HACK: Not sure we we actually need to reset the host here
         self.host = self.user_ids[0] if len(self.user_ids) > 0 else None
         memcache.set("room-" + self.room_id, self)
 
@@ -158,8 +147,7 @@ class RoomStateMessage(object):
 
     def get_state(self,room):
         users = [User.load(user_id) for user_id in room.user_ids]
-        switch_interval=(room.time_to_switch-datetime.datetime.now()).total_seconds()*1000.0 if room.time_to_switch else None
-
+        switch_interval = (room.time_to_switch - datetime.datetime.now()).total_seconds() * 1000.0 if room.time_to_switch else None
 
         if room.status == 'waiting':
             return dict(
@@ -291,13 +279,13 @@ class RoomCheckStateHandler(BaseRoomHandler):
             return
 
         if room.host == user.user_id:
-            logging.info("You are the host "+ user.nickname)
+            logging.info("Advancing the room state")
             room.advance_state()
             self.add_room_message(room.room_id, RoomStateMessage(room))
             self.send_messages()
 
         else:
-            logging.warn("You're not the host!")
+            logging.warn('Did not advance the room state because user %s is not host %s' % (user.user_id, room.host))
 
 
 
@@ -338,7 +326,7 @@ class RoomSetNicknameHandler(BaseRoomHandler):
         self.add_room_message(room.room_id, RoomStateMessage(room))
         self.send_messages()
 
-class RoomStartHandler(webapp2.RequestHandler):
+class RoomCreateHandler(webapp2.RequestHandler):
     def post(self):
         user_id = self.request.cookies.get("user_id")
         logging.info("user_id from cookies:" + str(user_id))
@@ -383,7 +371,7 @@ class RoomStartGameHandler(BaseRoomHandler):
     def post(self, room_id):
         room_id = room_id.upper()
         (room, user) = self.get_room_and_user(room_id)
-        logging.info("Game Start requested for %s by %s" % (room_id, user.user_id))
+        logging.info("Game start requested for %s by %s" % (room_id, user.user_id))
 
         if not room:
             logging.warn("Room does not exist")
@@ -416,7 +404,7 @@ class RoomSendGuessHandler(BaseRoomHandler):
 
 app = webapp2.WSGIApplication([
     ('/', IndexHandler),
-    ('/room/?', RoomStartHandler),
+    ('/room/?', RoomCreateHandler),
     ('/room/([A-Za-z]+)', RoomViewHandler),
     ('/room/([A-Za-z]+)/checkstate', RoomCheckStateHandler),
     ('/room/([A-Za-z]+)/connect', RoomConnectHandler),
