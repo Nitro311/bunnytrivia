@@ -308,18 +308,21 @@ class RoomSetNicknameHandler(BaseRoomHandler):
     def post(self, room_id):
         room_id = room_id.upper()
         (room, user) = self.get_room_and_user(room_id)
-        newnickname = self.request.get('newnickname').upper()
+        newnickname = self.request.get('newnickname').upper().trim()
         logging.info("Renaming user %s to %s" % (user.nickname, newnickname))
 
         if not room:
             logging.warn("Room does not exist")
             return
 
-        #TODO: Verify change
+        if newnickname == user.nickname or len(newnickname) == 0:
+            logging.info("Did not change nickname")
+            return
+
+        # TODO: Remove potentially obscene room names
 
         user.nickname = newnickname
         user.save()
-
         self.add_user_message(user.user_id, NewNicknameMessage(user.nickname))
         self.add_room_message(room.room_id, RoomStateMessage(room))
         self.send_messages()
@@ -387,7 +390,6 @@ class RoomSendGuessHandler(BaseRoomHandler):
         (room, user) = self.get_room_and_user(room_id)
         guess = self.request.get('guess').upper()
         logging.info("Guess %s received %s by %s" % (guess,room_id, user.user_id))
-
 
         if not room:
             logging.warn("Room does not exist")
