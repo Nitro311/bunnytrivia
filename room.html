@@ -110,13 +110,33 @@
 		<script id="askingquestiontemplate" type="text/x-handlebars-template">
 			<div style="text-align:center">
 				<h1>{% templatetag openvariable %}question{% templatetag closevariable %}</h1>
-				<form id="answerform" onsubmit="return sendAnswer()">
+				<form id="guessform" onsubmit="return sendGuess()">
 					<input type="text" id="answer"  autofocus autocomplete="off"/>
 					<button type="submit" class="btn btn-lg btn-success">Ok</button>
 				</form>
 			</div>
 		</script>
 
+		<script id="questionanswertemplate" type="text/x-handlebars-template">
+		<h1>{% templatetag openvariable %}question{% templatetag closevariable %}</h1>
+		Pick the best answer
+		</script>
+
+		<script id="questionrevealtemplate" type="text/x-handlebars-template">
+		<h1>{% templatetag openvariable %}question{% templatetag closevariable %}</h1>
+		The answer is revealed!
+		</script>
+
+		<script id="questionscoretemplate" type="text/x-handlebars-template">
+		<h1>{% templatetag openvariable %}question{% templatetag closevariable %}</h1>
+		Show the scores for the question
+		</script>
+
+		<script id="scoretemplate" type="text/x-handlebars-template">
+		Show the overall scores
+		</script>
+
+		
 		<script id="answeredquestiontemplate" type="text/x-handlebars-template">
 			<div style="text-align:center">
 				<h1>Question is over!</h1>
@@ -129,12 +149,12 @@
 						</tr>
 					</thead>
 					<tbody>
-						{% templatetag openvariable %}#answers{% templatetag closevariable %}
+						{% templatetag openvariable %}#guesses{% templatetag closevariable %}
 						<tr>
 							<td>{% templatetag openvariable %}nickname{% templatetag closevariable %}</td>
-							<td>{% templatetag openvariable %}answer{% templatetag closevariable %}</td>
+							<td>{% templatetag openvariable %}guess{% templatetag closevariable %}</td>
 						</tr>
-						{% templatetag openvariable %}/answers{% templatetag closevariable %}
+						{% templatetag openvariable %}/guesses{% templatetag closevariable %}
 					</tbody>
 				</table>
 			</div>
@@ -217,13 +237,36 @@
 					console.log('Room state received');
 					if (data.room.status === 'waiting') {
 						$('#main').renderTemplate($('#waitingroomtemplate'), data.room);
-					} else if (data.room.status === 'started') {
+					} else if (data.room.status === 'round') {
 						$('#main').renderTemplate($('#startroundtemplate'), data.room);
-						// TODO: Set timer and re-request game state in x seconds
-					} else if (data.room.status === 'askingquestion') {
+						if (data.room.switch_interval){
+							setTimeout(checkState, data.room.switch_interval);
+						}
+					} else if (data.room.status === 'questionguess') {
 						$('#main').renderTemplate($('#askingquestiontemplate'), data.room);
-					} else if (data.room.status === 'answeredquestion') {
-						$('#main').renderTemplate($('#answeredquestiontemplate'), data.room);
+						if (data.room.switch_interval){
+							setTimeout(checkState, data.room.switch_interval);
+						}
+					} else if (data.room.status == "questionanswer") {
+						$('#main').renderTemplate($('#questionanswertemplate'), data.room);
+						if (data.room.switch_interval){
+							setTimeout(checkState, data.room.switch_interval);
+						}
+					} else if (data.room.status == "questionreveal") {
+						$('#main').renderTemplate($('#questionrevealtemplate'), data.room);
+						if (data.room.switch_interval){
+							setTimeout(checkState, data.room.switch_interval);
+						}
+					} else if (data.room.status == "questionscore") {
+						$('#main').renderTemplate($('#questionscoretemplate'), data.room);
+						if (data.room.switch_interval){
+							setTimeout(checkState, data.room.switch_interval);
+						}
+					} else if (data.room.status == "score") {
+						$('#main').renderTemplate($('#scoretemplate'), data.room);
+						if (data.room.switch_interval){
+							setTimeout(checkState, data.room.switch_interval);
+						}
 					} else {
 						console.log('Unknown room status: ' + JSON.stringify(data));
 					}
@@ -231,6 +274,10 @@
 					console.log('Unknown message received: ' + JSON.stringify(data));
 				}
 			}
+			
+			function checkState(){
+				sendMessage("/checkstate");
+			};
 
 			// Templating
 			var compiled = {};
@@ -264,10 +311,10 @@
 				return false;
 			}
 
-			function sendAnswer() {
-				answer = $('#answerform input').val();
-				if (answer) {
-					sendMessage('/sendanswer', 'answer=' + answer);
+			function sendGuess() {
+				guess = $('#guessform input').val();
+				if (guess) {
+					sendMessage('/sendguess', 'guess=' + guess);
 				}
 				return false;
 			}
