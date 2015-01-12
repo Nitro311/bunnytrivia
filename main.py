@@ -18,10 +18,8 @@ from questions import questions
 class DateTimeJSONEncoder(json.JSONEncoder):
     def default(self, obj):
         self.sort_keys = True
-        if isinstance(obj, datetime.datetime):
-            return obj.isoformat() + ' UTC'
-        elif isinstance(obj, datetime.date):
-            return obj.isoformat() + ' UTC'
+        if isinstance(obj, datetime.datetime) or isinstance(obj, datetime.date):
+            return obj.isoformat()[:-3]+"Z"
         else:
             return obj.__dict__
 
