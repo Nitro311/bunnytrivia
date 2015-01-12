@@ -24,11 +24,11 @@
 			
 			.navbar-brand {
 				text-align: center;
-				height: 80px;
 			}
 			
 			.navbar-brand img {
-				height: 50px;
+				max-height: 50px;
+				max-width: 70%;
 			}
 			
 			#alertbar {
@@ -38,16 +38,13 @@
 		</style>
 	</head>
 	<body>
-		<div class="container">
-			<nav class="navbar navbar-default">
-				<div class="container-fluid">
-					<div class="navbar-header">
-						<a class="navbar-brand" href="#">
-							<img src="/images/logo.png" alt="Bunny Trivia">
-						</a>
-					</div>
+		<nav class="navbar navbar-default">
+			<div class="container">
+				<div class="navbar-header">
+					<a class="navbar-brand" href="#"><img src="/images/logo.png" alt="Bunny Trivia"></a>
 				</div>
-			</nav>
+			</div>
+		</nav>
 			
 			<div class="alert alert-danger" role="alert" id="alertbar">
 				{{ alert }}
