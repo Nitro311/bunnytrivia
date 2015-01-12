@@ -19,7 +19,7 @@ class DateTimeJSONEncoder(json.JSONEncoder):
     def default(self, obj):
         self.sort_keys = True
         if isinstance(obj, datetime.datetime) or isinstance(obj, datetime.date):
-            return obj.isoformat()[:-3]+"Z"
+            return obj.isoformat()[:-3] + "Z"
         else:
             return obj.__dict__
 
@@ -37,9 +37,9 @@ class Room(object):
         self.room_id = self.create_random_id()
         self.status = "waiting"
         self.user_ids = []
-        self.question=None
-        self.guesses={}
-        self.host=None
+        self.question = None
+        self.guesses = {}
+        self.host = None
         self.time_to_switch = None
 
     def set_guess(self, user_id, guess):
@@ -47,8 +47,8 @@ class Room(object):
             self.guesses[user_id] = guess
 
     def start_game(self):
-        self.status="round"
-        self.round=1
+        self.status = "round"
+        self.round = 1
         self.time_to_switch = datetime.datetime.now() + datetime.timedelta(0,5)
 
     def upsert_user(self, user_id):
