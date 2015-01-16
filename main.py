@@ -190,6 +190,8 @@ class RoomStateMessage(object):
         elif room.status == "questionanswer":
             all_guesses = { guess for guess in room.guesses.values() }
             all_guesses.add(room.question.answer)
+            # Add fake answers
+            all_guesses |= set(room.question.answers)            
             return dict(
                 room_id = room.room_id,
                 status = room.status,
