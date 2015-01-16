@@ -157,7 +157,24 @@
 
 		<script id="questionrevealtemplate" type="text/x-handlebars-template">
 		<h1>{% templatetag openvariable %}question{% templatetag closevariable %}</h1>
-		The answer is revealed!
+			<table class="table table-striped" id="waitingtable">
+						<thead>
+							<tr>
+								<th>Player:</th>
+								<th>Answer:</th>
+								<th>Correct?</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% templatetag openvariable %}#guesses{% templatetag closevariable %}
+							<tr>
+								<td>{% templatetag openvariable %}guessers{% templatetag closevariable %}</td>
+								<td>{% templatetag openvariable %}answer{% templatetag closevariable %}</td>
+								<td>{% templatetag openvariable %}is_correct{% templatetag closevariable %}</td>
+							</tr>
+							{% templatetag openvariable %}/guesses{% templatetag closevariable %}
+						</tbody>
+					</table>
 		</script>
 
 		<script id="questionscoretemplate" type="text/x-handlebars-template">
