@@ -139,7 +139,20 @@
 
 		<script id="questionanswertemplate" type="text/x-handlebars-template">
 		<h1>{% templatetag openvariable %}question{% templatetag closevariable %}</h1>
-		Pick the best answer
+			<table class="table table-striped" id="waitingtable">
+				<thead>
+					<tr>
+						<th>Guesses:</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% templatetag openvariable %}#guesses{% templatetag closevariable %}
+					<tr>
+						<td><button class="btn btn-primary">{% templatetag openvariable %}this{% templatetag closevariable %}</button></td>
+					</tr>
+					{% templatetag openvariable %}/guesses{% templatetag closevariable %}
+				</tbody>
+			</table>
 		</script>
 
 		<script id="questionrevealtemplate" type="text/x-handlebars-template">
