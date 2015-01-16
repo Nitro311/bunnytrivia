@@ -113,7 +113,7 @@
 			<button id="startgamenow" class="btn btn-lg btn-success">Start Now</button>
 
 			<p></p>
-			
+
 			<div class="panel panel-success">
 				<div class="panel-heading">
 					<h3 class="panel-title">Invite others</h3>
@@ -200,9 +200,10 @@
 
 		<script id="gameovertemplate" type="text/x-handlebars-template">
 			Game is over, show winner?
+
+			<button id="startgamenow" class="btn btn-lg btn-success">Restart</button>
 		</script>
 
-		
 		<script id="answeredquestiontemplate" type="text/x-handlebars-template">
 			<div style="text-align:center">
 				<h1>Question is over!</h1>
@@ -402,7 +403,7 @@
 				}
 				return false;
 			}
-			
+
 			function startupCommands() {
 				drawNickname();
 				showLoading();
@@ -418,6 +419,10 @@
 					} else {
 						$('#nickname input').focus();
 					}
+				});
+
+				$('body').on('click', '#restartgame', function () {
+					sendMessage('/restartgame');
 				});
 
 				$('body').on('click', '.answer-button', function() {

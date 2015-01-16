@@ -31,16 +31,19 @@ class Room(object):
     timedelta_for_answers = datetime.timedelta(0, 10)
     last_round = 3
 
-    def __init__(self):
-        self.round=1
-        self.room_id = self.create_random_id()
+    def reset_game(self):
+        self.round = 1
         self.status = "waiting"
-        self.user_ids = []
         self.question = None
         self.guesses = {}
         self.answers = {}
-        self.host = None
         self.time_to_switch = None
+
+    def __init__(self):
+        self.room_id = self.create_random_id()
+        self.user_ids = []
+        self.host = None
+        self.reset_game();
 
     def set_guess(self, user_id, guess):
         if self.status == 'questionguess':
@@ -58,8 +61,6 @@ class Room(object):
         else:
             logging.info("User %s tried to answer %s when room state was %s" % (user_id, answer, self.status))
 
-            
-
     def start_game(self):
         self.status = "round"
         self.round = 1
@@ -75,6 +76,8 @@ class Room(object):
                 self.status = "questionguess"
                 self.time_to_switch = datetime.datetime.now() + Room.timedelta_for_answers
                 self.guesses = {}
+                self.answers = {}
+                # TODO: Make sure we don't pick the same question as before
                 self.question = random.choice(questions)
                 self.question.answer = self.question.answer.upper()
                 self.save()
@@ -334,7 +337,6 @@ class RoomCheckStateHandler(BaseRoomHandler):
             logging.warn('Did not advance the room state because user %s is not host %s' % (user.user_id, room.host))
 
 
-
 class RoomConnectHandler(BaseRoomHandler):
     def post(self, room_id):
         room_id = room_id.upper()
@@ -416,6 +418,23 @@ class RoomViewHandler(BaseRoomHandler):
             self.response.set_cookie('user_id', user.user_id, max_age=60 * 60 * 24, overwrite=True)
         self.response.out.write(template.render(path, template_values))
 
+class RoomRestartGameHandler(BaseRoomHandler):
+    def post(self, room_id):
+        room_id = room_id.upper()
+        (room, user) = self.get_room_and_user(room_id)
+        logging.info("Game restart requested for %s by %s" % (room_id, user.user_id))
+
+        if not room:
+            logging.warn("Room does not exist")
+            return
+
+        if room.status == "gameover":
+            room.reset_game()
+            room.save()
+
+            self.add_room_message(room.room_id, RoomStateMessage(room, user))
+            self.send_messages()
+
 class RoomStartGameHandler(BaseRoomHandler):
     def post(self, room_id):
         room_id = room_id.upper()
@@ -473,6 +492,7 @@ app = webapp2.WSGIApplication([
     ('/room/([A-Za-z]+)', RoomViewHandler),
     ('/room/([A-Za-z]+)/checkstate', RoomCheckStateHandler),
     ('/room/([A-Za-z]+)/connect', RoomConnectHandler),
+    ('/room/([A-Za-z]+)/restartgame', RoomStartGameHandler),
     ('/room/([A-Za-z]+)/sendguess', RoomSendGuessHandler),
     ('/room/([A-Za-z]+)/sendanswer', RoomSendAnswerHandler),
     ('/room/([A-Za-z]+)/setnickname', RoomSetNicknameHandler),
