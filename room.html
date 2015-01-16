@@ -148,7 +148,7 @@
 				<tbody>
 					{% templatetag openvariable %}#guesses{% templatetag closevariable %}
 					<tr>
-						<td><button class="btn btn-primary">{% templatetag openvariable %}this{% templatetag closevariable %}</button></td>
+						<td><button class="btn btn-primary answer-button">{% templatetag openvariable %}this{% templatetag closevariable %}</button></td>
 					</tr>
 					{% templatetag openvariable %}/guesses{% templatetag closevariable %}
 				</tbody>
@@ -184,6 +184,10 @@
 
 		<script id="scoretemplate" type="text/x-handlebars-template">
 		Show the overall scores
+		</script>
+
+		<script id="gameovertemplate" type="text/x-handlebars-template">
+			Game is over, show winner?
 		</script>
 
 		
@@ -330,6 +334,11 @@
 						if (data.room.switch_interval){
 							setTimeout(checkState, data.room.switch_interval);
 						}
+					} else if (data.room.status == "gameover") {
+						$('#main').renderTemplate($('#gameovertemplate'), data.room);
+						if (data.room.switch_interval) {
+							setTimeout(checkState, data.room.switch_interval);
+						}
 					} else {
 						console.log('Unknown room status: ' + JSON.stringify(data));
 					}
@@ -397,6 +406,10 @@
 					} else {
 						$('#nickname input').focus();
 					}
+				});
+
+				$('body').on('click', '.answer-button', function() {
+					sendMessage('/sendanswer', { 'answer': $(this).text() });
 				});
 			}
 

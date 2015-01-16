@@ -23,15 +23,11 @@ class DateTimeJSONEncoder(json.JSONEncoder):
         else:
             return obj.__dict__
 
-class UserState(object):
-    def __init__(self, nickname, is_ready):
-        self.nickname = nickname
-        self.is_ready = is_ready
-
-    def __str__(self):
-        return '<%s: %s>' % (self.__class__.__name__, json.dumps(self, cls=DateTimeJSONEncoder))
-
 class Room(object):
+    timedelta_for_information = datetime.timedelta(0, 5)
+    timedelta_for_answers = datetime.timedelta(0, 10)
+    last_round = 3
+
     def __init__(self):
         self.round=1
         self.room_id = self.create_random_id()
@@ -39,17 +35,31 @@ class Room(object):
         self.user_ids = []
         self.question = None
         self.guesses = {}
+        self.answers = {}
         self.host = None
         self.time_to_switch = None
 
     def set_guess(self, user_id, guess):
         if self.status == 'questionguess':
             self.guesses[user_id] = guess
+        else:
+            logging.info("User %s tried to guess %s when room state was %s" % (user_id, guess, self.status))
+
+    def set_answer(self, user_id, answer):
+        if self.status == 'questionanswer':
+            if answer in self.guesses.values() or answer == self.question.answer:
+                self.answers[user_id] = answer
+            else:
+                logging.warn("User %s tried to answer %s but it wasn't found in %s" % (user_id, answer, string.join(self.guesses.values(), ', ')))
+        else:
+            logging.info("User %s tried to answer %s when room state was %s" % (user_id, answer, self.status))
+
+            
 
     def start_game(self):
         self.status = "round"
         self.round = 1
-        self.time_to_switch = datetime.datetime.now() + datetime.timedelta(0,5)
+        self.time_to_switch = datetime.datetime.now() + Room.timedelta_for_information
 
     def upsert_user(self, user_id):
         if not user_id in self.user_ids:
@@ -59,31 +69,36 @@ class Room(object):
         if self.time_to_switch < datetime.datetime.now():
             if self.status == "round":
                 self.status = "questionguess"
-                self.time_to_switch = datetime.datetime.now() + datetime.timedelta(0,5)
+                self.time_to_switch = datetime.datetime.now() + Room.timedelta_for_answers
                 self.guesses = {}
                 self.question = random.choice(questions)
+                self.question.answer = self.question.answer.upper()
                 self.save()
             elif self.status == "questionguess":
                 self.status = "questionanswer"
-                self.time_to_switch = datetime.datetime.now() + datetime.timedelta(0,5)
+                self.time_to_switch = datetime.datetime.now() + Room.timedelta_for_answers
                 self.save()
             elif self.status == "questionanswer":
                 self.status = "questionreveal"
-                self.time_to_switch = datetime.datetime.now() + datetime.timedelta(0,5)
+                self.time_to_switch = datetime.datetime.now() + Room.timedelta_for_information
                 self.save()
             elif self.status == "questionreveal":
                 self.status = "questionscore"
-                self.time_to_switch = datetime.datetime.now() + datetime.timedelta(0,5)
+                self.time_to_switch = datetime.datetime.now() + Room.timedelta_for_information
                 self.save()
             elif self.status == "questionscore":
                 self.status = "score"
-                self.time_to_switch  =datetime.datetime.now()+datetime.timedelta(0,5)
+                self.time_to_switch = datetime.datetime.now() + Room.timedelta_for_information
                 self.save()
             elif self.status == "score":
-                self.status = "round"
                 self.round = self.round + 1
-                self.time_to_switch = datetime.datetime.now() + datetime.timedelta(0,5)
+                self.time_to_switch = datetime.datetime.now() + Room.timedelta_for_information
+                if self.round > Room.last_round:
+                    self.status = "gameover"
+                else:
+                    self.status = "round"
                 self.save()
+
     def create_random_id(self):
         letters = string.ascii_uppercase
         result = random.choice(letters) + random.choice(letters) + random.choice(letters) + random.choice(letters)
@@ -151,16 +166,17 @@ class RoomStateMessage(object):
             return dict(
                 room_id = room.room_id,
                 status = room.status,
-                users = [UserState(user.nickname, user.is_ready) for user in users],
-            )
+                users = [dict(nickname=user.nickname, is_ready=user.is_ready) for user in users],
+                )
         elif room.status == "round":
             return dict(
                 room_id = room.room_id,
                 status = room.status,
                 round = room.round,
+                is_last_round = room.round == Room.last_round,
                 time_to_switch = room.time_to_switch,
                 switch_interval = switch_interval
-            )
+                )
         elif room.status == "questionguess":
             return dict(
                 room_id = room.room_id,
@@ -168,42 +184,67 @@ class RoomStateMessage(object):
                 question = room.question.question,
                 time_to_switch = room.time_to_switch,
                 switch_interval = switch_interval
-            )
+                )
         elif room.status == "questionanswer":
+            all_guesses = { guess for guess in room.guesses.values() }
+            all_guesses.add(room.question.answer)
             return dict(
                 room_id = room.room_id,
                 status = room.status,
-                guesses = ['TODO', 'LATER', 'Ill get er done'],
+                guesses = list(all_guesses),
                 question = room.question.question,
                 time_to_switch = room.time_to_switch,
                 switch_interval = switch_interval
-            )
+                )
         elif room.status == "questionreveal":
+            all_guesses = { guess for guess in room.guesses.values() }
+            all_guesses.add(room.question.answer.upper())
+            unguessed = { guess:[] for guess in all_guesses if guess not in room.answers }
+            guessers_for_guesses = dict(room.answers.items() + unguessed.items())
+            guesses = [dict(
+                answer=guess, 
+                guesssers=guessers_for_guesses[guess],
+                is_correct=(guess == room.question.answer)
+                ) for guess in all_guesses]
+
             return dict(
                 room_id = room.room_id,
                 status = room.status,
-                guesses = [dict(answer=room.question.answer, guesssers=room.user_ids, is_correct=True)],
+                guesses = guesses,
                 question = room.question.question,
                 time_to_switch = room.time_to_switch,
                 switch_interval = switch_interval
-            )
+                )
         elif room.status == "questionscore":
             return dict(
                 room_id = room.room_id,
                 status = room.status,
-                users = [UserState(user.nickname, user.is_ready) for user in users],
+                users = [dict(
+                    nickname=user.nickname, 
+                    score=user.score, 
+                    score_change=random.randrange(0, 500)
+                    ) for user in users],
                 question = room.question.question,
                 time_to_switch = room.time_to_switch,
                 switch_interval = switch_interval
-            )
+                )
         elif room.status == "score":
             return dict(
                 room_id = room.room_id,
                 status = room.status,
-                users = [UserState(user.nickname, user.is_ready) for user in users],
+                users = [dict(
+                    nickname=user.nickname, 
+                    score=user.score
+                    ) for user in users],
                 time_to_switch = room.time_to_switch,
                 switch_interval = switch_interval
-            )
+                )
+        elif room.status == "gameover":
+            return dict(
+                room_id = room.room_id,
+                status = room.status,
+                users = [dict(nickname=user.nickname, score=user.score) for user in users]
+                )
 
             #answerers = self.guesses.keys() if self.guesses else [],
             #guesses = [dict(nickname = user.nickname, guess = self.guesses[user.user_id]) for user in users] if self.status == "answeredquestion" and self.guesses else None
@@ -389,13 +430,30 @@ class RoomSendGuessHandler(BaseRoomHandler):
         room_id = room_id.upper()
         (room, user) = self.get_room_and_user(room_id)
         guess = self.request.get('guess').upper()
-        logging.info("Guess %s received %s by %s" % (guess,room_id, user.user_id))
+        logging.info("Guess %s received %s by %s" % (guess, room_id, user.user_id))
 
         if not room:
             logging.warn("Room does not exist")
             return
 
         room.set_guess(user.user_id, guess)
+        room.save()
+
+        self.add_room_message(room.room_id, RoomStateMessage(room))
+        self.send_messages()
+
+class RoomSendAnswerHandler(BaseRoomHandler):
+    def post(self, room_id):
+        room_id = room_id.upper()
+        (room, user) = self.get_room_and_user(room_id)
+        answer = self.request.get('answer').upper()
+        logging.info("Answer %s received %s by %s" % (answer ,room_id, user.user_id))
+
+        if not room:
+            logging.warn("Room does not exist")
+            return
+
+        room.set_answer(user.user_id, answer)
         room.save()
 
         self.add_room_message(room.room_id, RoomStateMessage(room))
@@ -409,6 +467,7 @@ app = webapp2.WSGIApplication([
     ('/room/([A-Za-z]+)/checkstate', RoomCheckStateHandler),
     ('/room/([A-Za-z]+)/connect', RoomConnectHandler),
     ('/room/([A-Za-z]+)/sendguess', RoomSendGuessHandler),
+    ('/room/([A-Za-z]+)/sendanswer', RoomSendAnswerHandler),
     ('/room/([A-Za-z]+)/setnickname', RoomSetNicknameHandler),
     ('/room/([A-Za-z]+)/startgame', RoomStartGameHandler)
     ], debug=True)
