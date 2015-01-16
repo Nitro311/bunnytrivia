@@ -5,6 +5,9 @@ api_version: 1
 threadsafe: true
 
 handlers:
+- url: /data
+  static_dir: data
+  application_readable: true
 - url: /images
   static_dir: images
 - url: /(robots\.txt|favicon\.ico|apple-touch-icon.*\.png|mstile-*\.png|crossdomain\.xml|humans\.txt)
@@ -12,7 +15,6 @@ handlers:
   upload: static/(.*)
 - url: /.*
   script: main.app
-
 libraries:
 - name: django
   version: "1.5"

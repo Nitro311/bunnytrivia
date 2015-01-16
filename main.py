@@ -14,6 +14,7 @@ from google.appengine.ext import db
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 from questions import questions
+from spelling import correct
 
 class DateTimeJSONEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -41,6 +42,7 @@ class Room(object):
 
     def set_guess(self, user_id, guess):
         if self.status == 'questionguess':
+            logging.info("Guess was %s correction: %s" % (guess, correct(guess)))
             self.guesses[user_id] = guess
         else:
             logging.info("User %s tried to guess %s when room state was %s" % (user_id, guess, self.status))
