@@ -94,7 +94,7 @@
 
 
 		<script id="waitingroomtemplate" type="text/x-handlebars-template">
-			<table class="table table-striped" id="waitingtable">
+			<table class="table table-striped">
 				<thead>
 					<tr>
 						<th>Player</th>
@@ -121,7 +121,7 @@
 				<div class="panel-body">
 					<div class="col-md-6">
 						<h3>Room code:</h3>
-						<h1><div id="roomcode">{% templatetag openvariable %}room_id{% templatetag closevariable %}</div></h1>
+						<h1><span id="roomcode">{% templatetag openvariable %}room_id{% templatetag closevariable %}</span></h1>
 						Visit
 						<span id="roomurl">{% templatetag openvariable %}room_url{% templatetag closevariable %}</span>
 					</div>
@@ -138,19 +138,20 @@
 				<h1> Round {% templatetag openvariable %}round{% templatetag closevariable %}</h1>
 			</div>
 		</script>
+
 		<script id="askingquestiontemplate" type="text/x-handlebars-template">
 			<div style="text-align:center">
-				<h1>{% templatetag openvariable %}question{% templatetag closevariable %}</h1>
+				<h1><label for="answer">{% templatetag openvariable %}question{% templatetag closevariable %}</label></h1>
 				<form id="guessform" onsubmit="return sendGuess()">
-					<input type="text" id="answer" autofocus autocomplete="off"/>
+					<input type="text" id="answer" autofocus autocomplete="off" />
 					<button type="submit" class="btn btn-lg btn-success">Ok</button>
 				</form>
 			</div>
 		</script>
 
 		<script id="questionanswertemplate" type="text/x-handlebars-template">
-		<h1>{% templatetag openvariable %}question{% templatetag closevariable %}</h1>
-			<table class="table table-striped" id="waitingtable">
+			<h1>{% templatetag openvariable %}question{% templatetag closevariable %}</h1>
+			<table class="table table-striped">
 				<thead>
 					<tr>
 						<th>Guesses:</th>
@@ -167,40 +168,34 @@
 		</script>
 
 		<script id="questionrevealtemplate" type="text/x-handlebars-template">
-		<h1>{% templatetag openvariable %}question{% templatetag closevariable %}</h1>
-			<table class="table table-striped" id="waitingtable">
-						<thead>
-							<tr>
-								<th>Answer</th>
-								<th>Who guessed it</th>
-								<th>Correct?</th>
-							</tr>
-						</thead>
-						<tbody>
-							{% templatetag openvariable %}#guesses{% templatetag closevariable %}
-							<tr>
-								<td>{% templatetag openvariable %}answer{% templatetag closevariable %}</td>
-								<td>{% templatetag openvariable %}#guessers{% templatetag closevariable %}{% templatetag openvariable %}this{% templatetag closevariable %} {% templatetag openvariable %}/guessers{% templatetag closevariable %}</td>
-								<td class="{% templatetag openvariable %}is_correct{% templatetag closevariable %}">
-									<!--{% templatetag openvariable %}#if is_correct{% templatetag closevariable %}
-									<img src="/images/yes.png" />
-									{% templatetag openvariable %}else{% templatetag closevariable %}
-									<img src="/images/no.png" />
-									{% templatetag openvariable %}/if{% templatetag closevariable %}--->
-								</td>
-							</tr>
-							{% templatetag openvariable %}/guesses{% templatetag closevariable %}
-						</tbody>
-					</table>
+			<h1>{% templatetag openvariable %}question{% templatetag closevariable %}</h1>
+			<table class="table table-striped">
+				<thead>
+					<tr>
+						<th>Answer</th>
+						<th>Who guessed it</th>
+						<th>Correct?</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% templatetag openvariable %}#guesses{% templatetag closevariable %}
+					<tr>
+						<td>{% templatetag openvariable %}answer{% templatetag closevariable %}</td>
+						<td>{% templatetag openvariable %}#guessers{% templatetag closevariable %}{% templatetag openvariable %}this{% templatetag closevariable %} {% templatetag openvariable %}/guessers{% templatetag closevariable %}</td>
+						<td class="{% templatetag openvariable %}is_correct{% templatetag closevariable %}"></td>
+					</tr>
+					{% templatetag openvariable %}/guesses{% templatetag closevariable %}
+				</tbody>
+			</table>
 		</script>
 
 		<script id="questionscoretemplate" type="text/x-handlebars-template">
-		<h1>{% templatetag openvariable %}question{% templatetag closevariable %}</h1>
-		Show the scores for the question
+			<h1>{% templatetag openvariable %}question{% templatetag closevariable %}</h1>
+			Show the scores for the question
 		</script>
 
 		<script id="scoretemplate" type="text/x-handlebars-template">
-		Show the overall scores
+			Show the overall scores
 		</script>
 
 		<script id="gameovertemplate" type="text/x-handlebars-template">
@@ -212,7 +207,7 @@
 			<div style="text-align:center">
 				<h1>Question is over!</h1>
 				<h1>{% templatetag openvariable %}question{% templatetag closevariable %}</h1>
-				<table class="table table-striped" id="waitingtable">
+				<table class="table table-striped">
 					<thead>
 						<tr>
 							<th>Player:</th>
@@ -325,10 +320,14 @@
 						$('#main').renderTemplate($('#startroundtemplate'), data.room);
 						setNextCheckState(data.room.switch_interval);
 					} else if (data.room.status === 'questionguess') {
-						$('#main').renderTemplate($('#askingquestiontemplate'), data.room);
+						if (roomState != data.room.status) {
+							$('#main').renderTemplate($('#askingquestiontemplate'), data.room);
+						}
 						setNextCheckState(data.room.switch_interval);
 					} else if (data.room.status == "questionanswer") {
-						$('#main').renderTemplate($('#questionanswertemplate'), data.room);
+						if (roomState != data.room.status) {
+							$('#main').renderTemplate($('#questionanswertemplate'), data.room);
+						}
 						setNextCheckState(data.room.switch_interval);
 					} else if (data.room.status == "questionreveal") {
 						$('#main').renderTemplate($('#questionrevealtemplate'), data.room);
@@ -346,6 +345,7 @@
 					} else {
 						console.log('Unknown room status: ' + JSON.stringify(data));
 					}
+					roomState = data.room.status;
 				} else {
 					console.log('Unknown message received: ' + JSON.stringify(data));
 				}
@@ -398,6 +398,7 @@
 				var guess = $('#guessform input').val();
 				if (guess) {
 					sendMessage('/sendguess', 'guess=' + guess);
+					showLoading();
 				}
 				return false;
 			}
@@ -421,6 +422,7 @@
 
 				$('body').on('click', '.answer-button', function() {
 					sendMessage('/sendanswer', { 'answer': $(this).text() });
+					showLoading();
 				});
 			}
 
@@ -443,6 +445,7 @@
 			var room_id = '{{ room_id }}';
 			var nickname = '{{ nickname }}';
 			var timer = null;
+			var roomState = null;
 		</script>
 	</body>
 </html>
