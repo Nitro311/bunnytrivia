@@ -42,6 +42,17 @@
 			input[type=text] {
 				text-transform: uppercase;
 			}
+
+			td.true {
+				background-image: url(/images/yes.png);
+				background-size: 40px 40px;
+				background-repeat: no-repeat;
+			}
+			td.false {
+				background-image: url(/images/no.png);
+				background-size: 40px 40px;
+				background-repeat: no-repeat;
+			}
 		</style>
 	</head>
 	<body>
@@ -160,17 +171,23 @@
 			<table class="table table-striped" id="waitingtable">
 						<thead>
 							<tr>
-								<th>Player:</th>
-								<th>Answer:</th>
+								<th>Answer</th>
+								<th>Who guessed it</th>
 								<th>Correct?</th>
 							</tr>
 						</thead>
 						<tbody>
 							{% templatetag openvariable %}#guesses{% templatetag closevariable %}
 							<tr>
-								<td>{% templatetag openvariable %}guessers{% templatetag closevariable %}</td>
 								<td>{% templatetag openvariable %}answer{% templatetag closevariable %}</td>
-								<td>{% templatetag openvariable %}is_correct{% templatetag closevariable %}</td>
+								<td>{% templatetag openvariable %}#guessers{% templatetag closevariable %}{% templatetag openvariable %}this{% templatetag closevariable %} {% templatetag openvariable %}/guessers{% templatetag closevariable %}</td>
+								<td class="{% templatetag openvariable %}is_correct{% templatetag closevariable %}">
+									<!--{% templatetag openvariable %}#if is_correct{% templatetag closevariable %}
+									<img src="/images/yes.png" />
+									{% templatetag openvariable %}else{% templatetag closevariable %}
+									<img src="/images/no.png" />
+									{% templatetag openvariable %}/if{% templatetag closevariable %}--->
+								</td>
 							</tr>
 							{% templatetag openvariable %}/guesses{% templatetag closevariable %}
 						</tbody>
@@ -306,39 +323,26 @@
 						});
 					} else if (data.room.status === 'round') {
 						$('#main').renderTemplate($('#startroundtemplate'), data.room);
-						if (data.room.switch_interval){
-							setTimeout(checkState, data.room.switch_interval);
-						}
+						setNextCheckState(data.room.switch_interval);
 					} else if (data.room.status === 'questionguess') {
 						$('#main').renderTemplate($('#askingquestiontemplate'), data.room);
-						if (data.room.switch_interval){
-							setTimeout(checkState, data.room.switch_interval);
-						}
+						setNextCheckState(data.room.switch_interval);
 					} else if (data.room.status == "questionanswer") {
 						$('#main').renderTemplate($('#questionanswertemplate'), data.room);
-						if (data.room.switch_interval){
-							setTimeout(checkState, data.room.switch_interval);
-						}
+						setNextCheckState(data.room.switch_interval);
 					} else if (data.room.status == "questionreveal") {
 						$('#main').renderTemplate($('#questionrevealtemplate'), data.room);
-						if (data.room.switch_interval){
-							setTimeout(checkState, data.room.switch_interval);
-						}
+						console.log("template data: " + JSON.stringify(data.room));
+						setNextCheckState(data.room.switch_interval);
 					} else if (data.room.status == "questionscore") {
 						$('#main').renderTemplate($('#questionscoretemplate'), data.room);
-						if (data.room.switch_interval){
-							setTimeout(checkState, data.room.switch_interval);
-						}
+						setNextCheckState(data.room.switch_interval);
 					} else if (data.room.status == "score") {
 						$('#main').renderTemplate($('#scoretemplate'), data.room);
-						if (data.room.switch_interval){
-							setTimeout(checkState, data.room.switch_interval);
-						}
+						setNextCheckState(data.room.switch_interval);
 					} else if (data.room.status == "gameover") {
 						$('#main').renderTemplate($('#gameovertemplate'), data.room);
-						if (data.room.switch_interval) {
-							setTimeout(checkState, data.room.switch_interval);
-						}
+						setNextCheckState(data.room.switch_interval);
 					} else {
 						console.log('Unknown room status: ' + JSON.stringify(data));
 					}
@@ -347,10 +351,6 @@
 				}
 			}
 			
-			function checkState(){
-				sendMessage("/checkstate");
-			};
-
 			// Templating
 			var compiled = {};
 			$.fn.renderTemplate = function(template, data) {
@@ -364,6 +364,17 @@
 
 
 			// Miscellaneous
+			function setNextCheckState(interval) {
+				if (interval) {
+					clearTimeout(timer);
+					timer = setTimeout(checkState, interval);
+				}
+			}
+
+			function checkState() {
+				sendMessage("/checkstate");
+			};
+
 			function showLoading() {
 				$('#main').html('<div style="text-align: center"><img src="/images/spinner.gif"></div>');
 			}
@@ -413,12 +424,25 @@
 				});
 			}
 
+			Handlebars.registerHelper("debug", function (optionalValue) {
+				console.log("\nCurrent Context");
+				console.log("====================");
+				console.log(this);
+
+				if (arguments.length > 1) {
+					console.log("Value");
+					console.log("====================");
+					console.log(optionalValue);
+				}
+			});
+
 			$(function() {
 				startupCommands();
 			});
 
 			var room_id = '{{ room_id }}';
 			var nickname = '{{ nickname }}';
+			var timer = null;
 		</script>
 	</body>
 </html>
