@@ -19,8 +19,10 @@ from spelling import correct
 class DateTimeJSONEncoder(json.JSONEncoder):
     def default(self, obj):
         self.sort_keys = True
-        if isinstance(obj, datetime.datetime) or isinstance(obj, datetime.date):
+        if isinstance(obj, (datetime.datetime, datetime.date)):
             return obj.isoformat()[:-3] + "Z"
+        if isinstance(obj, set):
+            return list(obj)
         else:
             return obj.__dict__
 
@@ -155,14 +157,14 @@ class NewNicknameMessage(object):
         self.newnickname = newnickname
 
 class RoomStateMessage(object):
-    def __init__(self, room):
+    def __init__(self, room, user):
         self.message_type = "room"
         self.room_id = room.room_id
-        self.room = self.get_state(room)
+        self.room = self.get_state(room, user.user_id)
 
-    def get_state(self,room):
+    def get_state(self, room, user_id):
+        switch_interval = (room.time_to_switch - datetime.datetime.now()).total_seconds() * 1000.0 if room.time_to_switch and room.host == user_id else None
         users = [User.load(user_id) for user_id in room.user_ids]
-        switch_interval = (room.time_to_switch - datetime.datetime.now()).total_seconds() * 1000.0 if room.time_to_switch else None
 
         if room.status == 'waiting':
             return dict(
@@ -203,14 +205,15 @@ class RoomStateMessage(object):
         elif room.status == "questionreveal":
             all_guesses = { guess for guess in room.guesses.values() }
             all_guesses.add(room.question.answer.upper())
-            unguessed = { guess:[] for guess in all_guesses if guess not in room.answers }
-            guessers_for_guesses = dict(room.answers.items() + unguessed.items())
+            all_guesses |= set([answer.upper() for answer in room.question.answers])
+            guessers_for_guesses = { guess:[] for guess in all_guesses }
+            for user_id, guess in room.answers.items():
+                guessers_for_guesses[guess].append([user.nickname for user in users if user.user_id == user_id][0])
             guesses = [dict(
                 answer=guess, 
-                guesssers=guessers_for_guesses[guess],
+                guessers=guessers_for_guesses[guess],
                 is_correct=(guess == room.question.answer)
                 ) for guess in all_guesses]
-
             return dict(
                 room_id = room.room_id,
                 status = room.status,
@@ -324,7 +327,7 @@ class RoomCheckStateHandler(BaseRoomHandler):
         if room.host == user.user_id:
             logging.info("Advancing the room state")
             room.advance_state()
-            self.add_room_message(room.room_id, RoomStateMessage(room))
+            self.add_room_message(room.room_id, RoomStateMessage(room, user))
             self.send_messages()
 
         else:
@@ -346,7 +349,7 @@ class RoomConnectHandler(BaseRoomHandler):
         room.save()
 
         self.add_user_message(user.user_id, ConnectedMessage())
-        self.add_room_message(room.room_id, RoomStateMessage(room))
+        self.add_room_message(room.room_id, RoomStateMessage(room, user))
         self.send_messages()
 
 class RoomSetNicknameHandler(BaseRoomHandler):
@@ -369,7 +372,7 @@ class RoomSetNicknameHandler(BaseRoomHandler):
         user.nickname = newnickname
         user.save()
         self.add_user_message(user.user_id, NewNicknameMessage(user.nickname))
-        self.add_room_message(room.room_id, RoomStateMessage(room))
+        self.add_room_message(room.room_id, RoomStateMessage(room, user))
         self.send_messages()
 
 class RoomCreateHandler(webapp2.RequestHandler):
@@ -426,7 +429,7 @@ class RoomStartGameHandler(BaseRoomHandler):
         room.start_game()
         room.save()
 
-        self.add_room_message(room.room_id, RoomStateMessage(room))
+        self.add_room_message(room.room_id, RoomStateMessage(room, user))
         self.send_messages()
 
 class RoomSendGuessHandler(BaseRoomHandler):
@@ -443,7 +446,7 @@ class RoomSendGuessHandler(BaseRoomHandler):
         room.set_guess(user.user_id, guess)
         room.save()
 
-        self.add_room_message(room.room_id, RoomStateMessage(room))
+        self.add_room_message(room.room_id, RoomStateMessage(room, user))
         self.send_messages()
 
 class RoomSendAnswerHandler(BaseRoomHandler):
@@ -460,7 +463,7 @@ class RoomSendAnswerHandler(BaseRoomHandler):
         room.set_answer(user.user_id, answer)
         room.save()
 
-        self.add_room_message(room.room_id, RoomStateMessage(room))
+        self.add_room_message(room.room_id, RoomStateMessage(room, user))
         self.send_messages()
 
 
