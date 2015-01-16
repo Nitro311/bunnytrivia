@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 	<head>
 		<meta charset="utf-8">
@@ -222,7 +222,7 @@
 			// Messaging
 			function sendMessage(route, data) {
 				var path = '/room/{{ room_id }}' + route;
-				console.log('POST: ' + path + " " + (data || ''));
+				console.log('POST: ' + path + " " + (JSON.stringify(data) || ''));
 				$.post(path, data);
 			}
 
@@ -335,7 +335,7 @@
 			}
 
 			function setNickname() {
-				newNickname = $('#newnicknameform input').val();
+				var newNickname = $('#newnicknameform input').val();
 				if (newNickname && newNickname.trim() && newNickname !== nickname) {
 					sendMessage('/setnickname', { 'newnickname': newNickname.trim() });
 				} else if (nickname) {
@@ -345,7 +345,7 @@
 			}
 
 			function sendGuess() {
-				guess = $('#guessform input').val();
+				var guess = $('#guessform input').val();
 				if (guess) {
 					sendMessage('/sendguess', 'guess=' + guess);
 				}
