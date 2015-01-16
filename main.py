@@ -308,7 +308,7 @@ class RoomSetNicknameHandler(BaseRoomHandler):
     def post(self, room_id):
         room_id = room_id.upper()
         (room, user) = self.get_room_and_user(room_id)
-        newnickname = self.request.get('newnickname').upper().trim()
+        newnickname = self.request.get('newnickname').upper().strip()
         logging.info("Renaming user %s to %s" % (user.nickname, newnickname))
 
         if not room:
