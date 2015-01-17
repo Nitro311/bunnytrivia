@@ -49,6 +49,8 @@ class Room(object):
     def set_guess(self, user_id, guess):
         if self.status == 'questionguess':
             self.guesses[user_id] = guess
+            if len(self.user_ids) == len(self.guesses):
+                self.advance_state(ignore_time=True)
         else:
             logging.info("User %s tried to guess %s when room state was %s" % (user_id, guess, self.status))
 
@@ -56,6 +58,8 @@ class Room(object):
         if self.status == 'questionanswer':
             if answer in self.guesses.values() or answer == self.question.answer:
                 self.answers[user_id] = answer
+                if len(self.user_ids) == len(self.answers):
+                    self.advance_state(ignore_time=True)
             else:
                 logging.warn("User %s tried to answer %s but it wasn't found in %s" % (user_id, answer, string.join(self.guesses.values(), ', ')))
         else:
@@ -108,8 +112,8 @@ class Room(object):
         self.question = random.choice(questions)
         self.question.answer = wordfixer.standardize_guess(self.question.answer)
 
-    def advance_state(self):
-        if self.time_to_switch and self.time_to_switch < datetime.datetime.now():
+    def advance_state(self, ignore_time):
+        if ignore_time or (self.time_to_switch and self.time_to_switch < datetime.datetime.now()):
             if self.status == "round":
                 self.status = "questionguess"
                 self.time_to_switch = datetime.datetime.now() + Room.timedelta_for_answers
