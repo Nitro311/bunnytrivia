@@ -152,6 +152,9 @@ class Room(object):
         return memcache.get("room-" + room_id)
 
     def save(self):
+        # Fix hosts if it accidentally goes bad
+        if not self.host in self.user_ids and len(self.user_ids) > 0:
+            self.host = self.user_ids[0]
         memcache.set("room-" + self.room_id, self)
 
     def __str__(self):
@@ -363,7 +366,7 @@ class RoomCheckStateHandler(BaseRoomHandler):
 
         if room.host == user.user_id:
             logging.info("Advancing the room state")
-            room.advance_state()
+            room.advance_state(ignore_time=False)
             self.add_room_message(room.room_id, RoomStateMessage(room, user))
             self.send_messages()
 
