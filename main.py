@@ -28,7 +28,7 @@ class DateTimeJSONEncoder(json.JSONEncoder):
 
 class Room(object):
     timedelta_for_information = datetime.timedelta(0, 5)
-    timedelta_for_answers = datetime.timedelta(0, 10)
+    timedelta_for_answers = datetime.timedelta(0, 30)
     last_round = 3
 
     def reset_game(self):
