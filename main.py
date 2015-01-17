@@ -102,7 +102,10 @@ class Room(object):
             logging.info("%d total added to %s's score" % (amount, user.nickname))
 
 
-
+    def pick_wrong_answers(self):
+        possible_answers = [answer.upper() for answer in self.question.answers]
+        random.shuffle(possible_answers)
+        self.wrong_answers = set(possible_answers[:max(1, 4 - len(set(self.guesses.values())))])
 
     def ask_new_question(self):
         self.guesses = {}
@@ -122,6 +125,7 @@ class Room(object):
             elif self.status == "questionguess":
                 self.status = "questionanswer"
                 self.time_to_switch = datetime.datetime.now() + Room.timedelta_for_answers
+                self.pick_wrong_answers()
                 self.save()
             elif self.status == "questionanswer":
                 self.status = "questionreveal"
@@ -240,8 +244,7 @@ class RoomStateMessage(object):
         elif room.status == "questionanswer":
             all_guesses = { guess for guess in room.guesses.values() }
             all_guesses.add(room.question.answer)
-            # Add fake answers
-            all_guesses |= set(room.question.answers)
+            all_guesses |= room.wrong_answers
             return dict(
                 room_id = room.room_id,
                 status = room.status,
@@ -253,7 +256,7 @@ class RoomStateMessage(object):
         elif room.status == "questionreveal":
             all_guesses = { guess for guess in room.guesses.values() }
             all_guesses.add(room.question.answer.upper())
-            all_guesses |= set([answer.upper() for answer in room.question.answers])
+            all_guesses |= room.wrong_answers
             guessers_for_guesses = { guess:[] for guess in all_guesses }
             for user_id, guess in room.answers.items():
                 guessers_for_guesses[guess].append([user.nickname for user in users if user.user_id == user_id][0])
