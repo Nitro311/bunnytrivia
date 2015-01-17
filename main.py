@@ -291,8 +291,8 @@ class RoomStateMessage(object):
                     score=user.score,
                     score_change=room.score_changes.get(user.user_id, 0)
                     ) for user in users],
-                #time_to_switch = room.time_to_switch,
-                #switch_interval = switch_interval
+                time_to_switch = room.time_to_switch,
+                switch_interval = switch_interval
                 )
         elif room.status == "gameover":
             return dict(
