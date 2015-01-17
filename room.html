@@ -445,6 +445,8 @@
 			}
 
 			function startupCommands() {
+				var bleep = new Audio();
+				bleep.src = 'bleep.mp3';
 				drawNickname();
 				showLoading();
 				establishMessaging();
@@ -470,6 +472,10 @@
 					sendMessage('/sendanswer', { 'answer': $(this).text() });
 					showLoading();
 				});
+				window.buttonacceptsound = new Audio();
+				window.buttonacceptsound.src = 'buttonaccept.mp3';
+				window.buttondeclinesound = new Audio();
+				window.buttondeclinesound.src = 'buttondecline.mp3';
 			}
 
 			Handlebars.registerHelper("debug", function (optionalValue) {
