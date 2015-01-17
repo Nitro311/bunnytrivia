@@ -14,7 +14,7 @@ from google.appengine.ext import db
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 from questions import questions
-from spelling import correct
+from wordfixer import WordFixer
 
 class DateTimeJSONEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -37,6 +37,7 @@ class Room(object):
         self.question = None
         self.guesses = {}
         self.answers = {}
+        self.score_changes = {}
         self.time_to_switch = None
 
     def __init__(self):
@@ -47,7 +48,6 @@ class Room(object):
 
     def set_guess(self, user_id, guess):
         if self.status == 'questionguess':
-            logging.info("Guess was %s correction: %s" % (guess, correct(guess)))
             self.guesses[user_id] = guess
         else:
             logging.info("User %s tried to guess %s when room state was %s" % (user_id, guess, self.status))
@@ -70,16 +70,50 @@ class Room(object):
         if not user_id in self.user_ids:
             self.user_ids.append(user_id)
 
+    def score_question(self):
+        # Check the initial guesses
+        for guess_user_id, guess in self.guesses.items():
+            if guess == self.question.answer:
+                # User guessed correctly
+                self.score_changes[guess_user_id] = self.score_changes.get(guess_user_id, 0) + 500
+                logging.info('+500 the user %s who guessed the answer %s initially' % (guess_user_id, guess))
+
+        for answer_user_id, answer in self.answers.items():
+            if answer == self.question.answer:
+                # User picked correctly
+                self.score_changes[answer_user_id] = self.score_changes.get(answer_user_id, 0) + 250
+                logging.info('+250 for the user %s who picked the right answer %s' % (answer_user_id, answer))
+            else:
+                # User picked incorrectly, reward the sneaky player
+                for sneaky_user_id, guess in self.guesses.items():
+                    if answer == guess and sneaky_user_id != answer_user_id:
+                        # Reward the user who made the guess
+                        self.score_changes[sneaky_user_id] = self.score_changes.get(sneaky_user_id, 0) + 100
+                        logging.info('+100 for the user %s who made the guess %s' % (sneaky_user_id, guess))
+
+        for user_id, amount in self.score_changes.items():
+            user = User.load(user_id)
+            user.score += amount
+            user.save()
+            logging.info("%d total added to %s's score" % (amount, user.nickname))
+
+
+
+
+    def ask_new_question(self):
+        self.guesses = {}
+        self.answers = {}
+        self.score_changes = {}
+        # TODO: Make sure we don't pick the same question as before
+        self.question = random.choice(questions)
+        self.question.answer = wordfixer.standardize_guess(self.question.answer)
+
     def advance_state(self):
-        if self.time_to_switch < datetime.datetime.now():
+        if self.time_to_switch and self.time_to_switch < datetime.datetime.now():
             if self.status == "round":
                 self.status = "questionguess"
                 self.time_to_switch = datetime.datetime.now() + Room.timedelta_for_answers
-                self.guesses = {}
-                self.answers = {}
-                # TODO: Make sure we don't pick the same question as before
-                self.question = random.choice(questions)
-                self.question.answer = self.question.answer.upper()
+                self.ask_new_question()
                 self.save()
             elif self.status == "questionguess":
                 self.status = "questionanswer"
@@ -90,6 +124,7 @@ class Room(object):
                 self.time_to_switch = datetime.datetime.now() + Room.timedelta_for_information
                 self.save()
             elif self.status == "questionreveal":
+                self.score_question()
                 self.status = "questionscore"
                 self.time_to_switch = datetime.datetime.now() + Room.timedelta_for_information
                 self.save()
@@ -117,8 +152,6 @@ class Room(object):
         return memcache.get("room-" + room_id)
 
     def save(self):
-        # HACK: Not sure we we actually need to reset the host here
-        self.host = self.user_ids[0] if len(self.user_ids) > 0 else None
         memcache.set("room-" + self.room_id, self)
 
     def __str__(self):
@@ -158,6 +191,11 @@ class NewNicknameMessage(object):
     def __init__(self, newnickname):
         self.message_type = 'newnickname'
         self.newnickname = newnickname
+
+class SpellingSuggestionMessage(object):
+    def __init__(self, suggestions):
+        self.message_type = 'spellingsuggestion'
+        self.suggestions = suggestions
 
 class RoomStateMessage(object):
     def __init__(self, room, user):
@@ -231,8 +269,7 @@ class RoomStateMessage(object):
                 status = room.status,
                 users = [dict(
                     nickname=user.nickname, 
-                    score=user.score, 
-                    score_change=random.randrange(0, 500)
+                    score_change=room.score_changes.get(user.user_id, 0)
                     ) for user in users],
                 question = room.question.question,
                 time_to_switch = room.time_to_switch,
@@ -244,7 +281,8 @@ class RoomStateMessage(object):
                 status = room.status,
                 users = [dict(
                     nickname=user.nickname, 
-                    score=user.score
+                    score=user.score, 
+                    score_change=room.score_changes.get(user.user_id, 0)
                     ) for user in users],
                 time_to_switch = room.time_to_switch,
                 switch_interval = switch_interval
@@ -255,10 +293,6 @@ class RoomStateMessage(object):
                 status = room.status,
                 users = [dict(nickname=user.nickname, score=user.score) for user in users]
                 )
-
-            #answerers = self.guesses.keys() if self.guesses else [],
-            #guesses = [dict(nickname = user.nickname, guess = self.guesses[user.user_id]) for user in users] if self.status == "answeredquestion" and self.guesses else None
-
 
 
 class BaseRoomHandler(webapp2.RequestHandler):
@@ -462,8 +496,20 @@ class RoomSendGuessHandler(BaseRoomHandler):
             logging.warn("Room does not exist")
             return
 
+        # Standardize any numeric answers
+        guess = wordfixer.standardize_guess(guess)
+        logging.info("Guess standardized: %s" % guess)
+
         room.set_guess(user.user_id, guess)
         room.save()
+
+        # Check for spelling suggestions
+        spelling = wordfixer.standardize_guess(wordfixer.correct(guess).upper())
+        if spelling != guess:
+            suggestions = [spelling]
+
+            # Send message to let them update their guess
+            self.add_user_message(user.user_id, SpellingSuggestionMessage(suggestions))
 
         self.add_room_message(room.room_id, RoomStateMessage(room, user))
         self.send_messages()
@@ -485,6 +531,8 @@ class RoomSendAnswerHandler(BaseRoomHandler):
         self.add_room_message(room.room_id, RoomStateMessage(room, user))
         self.send_messages()
 
+# TODO: May want to add additonal answers as spelling suggestions
+wordfixer = WordFixer(os.path.join(os.path.split(__file__)[0], 'data/words.txt'), [question.answer for question in questions])
 
 app = webapp2.WSGIApplication([
     ('/', IndexHandler),

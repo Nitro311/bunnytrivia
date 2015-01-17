@@ -77,14 +77,17 @@
 		</nav>
 
 		<div class="container">
-			<div id="main" class="page">
+			<div class="alert alert-info" role="alert" id="spellingbar" style="display: none">
+				<a href="#" class="close" data-dismiss="alert">&times;</a>
+				<div id="spellingmessage"></div>
 			</div>
+			<div id="main" class="page"></div>
 		</div>
 
 		<script id="newnicknametemplate" type="text/x-handlebars-template">
 			<form id="newnicknameform" onsubmit="return setNickname()">
 				<div class="input-group input-group-lg">
-					<input class="form-control" type="text" id="newnickname" placeholder="Enter nickname" value="{% templatetag openvariable %}this{% templatetag closevariable %}" autofocus />
+					<input class="form-control" type="text" id="newnickname" placeholder="Enter nickname" value="{% templatetag openvariable %}this{% templatetag closevariable %}" autofocus maxlength="20"/>
 					<span class="input-group-btn">
 						<button type="submit" class="btn btn-default">Set</button>
 					</span>
@@ -139,11 +142,11 @@
 			</div>
 		</script>
 
-		<script id="askingquestiontemplate" type="text/x-handlebars-template">
+		<script id="questionguesstemplate" type="text/x-handlebars-template">
 			<div style="text-align:center">
 				<h1><label for="answer">{% templatetag openvariable %}question{% templatetag closevariable %}</label></h1>
 				<form id="guessform" onsubmit="return sendGuess()">
-					<input type="text" id="answer" autofocus autocomplete="off" />
+					<input type="text" id="answer" autofocus autocomplete="off" maxlength="50" />
 					<button type="submit" class="btn btn-lg btn-success">Ok</button>
 				</form>
 			</div>
@@ -295,11 +298,15 @@
 
 					if (!nickname) {
 						$('#nickname').renderTemplate($('#newnicknametemplate'), nickname);
+						$('#newnickname').focus();
 					}
 				} else if (data.message_type === 'newnickname') {
 					console.log('New nickname received');
 					nickname = data.newnickname;
 					drawNickname();
+				} else if (data.message_type === 'spellingsuggestion') {
+					$('#spellingmessage').html('Did you mean <i>' + data.suggestions[0] + '</i>?');
+					$('#spellingbar').show();
 				} else if (data.message_type === 'room') {
 					console.log('Room state received');
 					if (data.room.status === 'waiting') {
@@ -322,11 +329,12 @@
 						setNextCheckState(data.room.switch_interval);
 					} else if (data.room.status === 'questionguess') {
 						if (roomState != data.room.status) {
-							$('#main').renderTemplate($('#askingquestiontemplate'), data.room);
+							$('#main').renderTemplate($('#questionguesstemplate'), data.room);
 						}
 						setNextCheckState(data.room.switch_interval);
 					} else if (data.room.status == "questionanswer") {
 						if (roomState != data.room.status) {
+							$('#spellingbar').hide();
 							$('#main').renderTemplate($('#questionanswertemplate'), data.room);
 						}
 						setNextCheckState(data.room.switch_interval);
@@ -411,6 +419,7 @@
 
 				$('#nickname').on('click', 'a', function() {
 					$('#nickname').renderTemplate($('#newnicknametemplate'), nickname);
+					$('#newnickname').focus();
 				});
 
 				$('body').on('click', '#startgamenow', function() {
