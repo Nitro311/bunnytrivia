@@ -81,7 +81,8 @@
 				<a href="#" class="close" data-dismiss="alert">&times;</a>
 				<div id="spellingmessage"></div>
 			</div>
-			<div id="main" class="page"></div>
+			<div id="display" class="page"></div>
+			<div id="player" class="page"></div>
 		</div>
 
 		<script id="newnicknametemplate" type="text/x-handlebars-template">
@@ -193,12 +194,43 @@
 		</script>
 
 		<script id="questionscoretemplate" type="text/x-handlebars-template">
-			<h1>{% templatetag openvariable %}question{% templatetag closevariable %}</h1>
-			Show the scores for the question
+			<table class="table table-striped">
+					<thead>
+						<tr>
+							<th>Player:</th>
+							<th>Score Change:</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% templatetag openvariable %}#users{% templatetag closevariable %}
+						<tr>
+							<td>{% templatetag openvariable %}nickname{% templatetag closevariable %}</td>
+							<td>{% templatetag openvariable %}score_change{% templatetag closevariable %}</td>
+						</tr>
+						{% templatetag openvariable %}/users{% templatetag closevariable %}
+					</tbody>
+				</table>
 		</script>
 
 		<script id="scoretemplate" type="text/x-handlebars-template">
-			Show the overall scores
+			<table class="table table-striped">
+					<thead>
+						<tr>
+							<th>Player:</th>
+							<th>Score:</th>
+							<th>Score Change:</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% templatetag openvariable %}#users{% templatetag closevariable %}
+						<tr>
+							<td>{% templatetag openvariable %}nickname{% templatetag closevariable %}</td>
+							<td>{% templatetag openvariable %}score{% templatetag closevariable %}</td>
+							<td>{% templatetag openvariable %}score_change{% templatetag closevariable %}</td>
+						</tr>
+						{% templatetag openvariable %}/users{% templatetag closevariable %}
+					</tbody>
+				</table>
 		</script>
 
 		<script id="gameovertemplate" type="text/x-handlebars-template">
@@ -316,7 +348,7 @@
 							port = "";
 						}
 						var roomUrl = url.protocol + "//" + url.hostname + port + "/room/" + room_id;
-						$('#main').renderTemplate($('#waitingroomtemplate'), { "room": data.room, "room_id": room_id, "room_url": roomUrl });
+						$('#display').renderTemplate($('#waitingroomtemplate'), { "room": data.room, "room_id": room_id, "room_url": roomUrl });
 						$('#roomqr').qrcode({
 							text: roomUrl,
 							height: 128,
@@ -325,31 +357,31 @@
 							foreground: '#000000'
 						});
 					} else if (data.room.status === 'round') {
-						$('#main').renderTemplate($('#startroundtemplate'), data.room);
+						$('#display').renderTemplate($('#startroundtemplate'), data.room);
 						setNextCheckState(data.room.switch_interval);
 					} else if (data.room.status === 'questionguess') {
 						if (roomState != data.room.status) {
-							$('#main').renderTemplate($('#questionguesstemplate'), data.room);
+							$('#display').renderTemplate($('#questionguesstemplate'), data.room);
 						}
 						setNextCheckState(data.room.switch_interval);
 					} else if (data.room.status == "questionanswer") {
 						if (roomState != data.room.status) {
 							$('#spellingbar').hide();
-							$('#main').renderTemplate($('#questionanswertemplate'), data.room);
+							$('#display').renderTemplate($('#questionanswertemplate'), data.room);
 						}
 						setNextCheckState(data.room.switch_interval);
 					} else if (data.room.status == "questionreveal") {
-						$('#main').renderTemplate($('#questionrevealtemplate'), data.room);
+						$('#display').renderTemplate($('#questionrevealtemplate'), data.room);
 						console.log("template data: " + JSON.stringify(data.room));
 						setNextCheckState(data.room.switch_interval);
 					} else if (data.room.status == "questionscore") {
-						$('#main').renderTemplate($('#questionscoretemplate'), data.room);
+						$('#display').renderTemplate($('#questionscoretemplate'), data.room);
 						setNextCheckState(data.room.switch_interval);
 					} else if (data.room.status == "score") {
-						$('#main').renderTemplate($('#scoretemplate'), data.room);
+						$('#display').renderTemplate($('#scoretemplate'), data.room);
 						setNextCheckState(data.room.switch_interval);
 					} else if (data.room.status == "gameover") {
-						$('#main').renderTemplate($('#gameovertemplate'), data.room);
+						$('#display').renderTemplate($('#gameovertemplate'), data.room);
 						setNextCheckState(data.room.switch_interval);
 					} else {
 						console.log('Unknown room status: ' + JSON.stringify(data));
@@ -385,7 +417,7 @@
 			};
 
 			function showLoading() {
-				$('#main').html('<div style="text-align: center"><img src="/images/spinner.gif"></div>');
+				$('#display').html('<div style="text-align: center"><img src="/images/spinner.gif"></div>');
 			}
 
 			function drawNickname() {

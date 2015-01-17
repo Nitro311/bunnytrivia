@@ -234,7 +234,7 @@ class RoomStateMessage(object):
             all_guesses = { guess for guess in room.guesses.values() }
             all_guesses.add(room.question.answer)
             # Add fake answers
-            all_guesses |= set(room.question.answers)            
+            all_guesses |= set(room.question.answers)
             return dict(
                 room_id = room.room_id,
                 status = room.status,
@@ -251,7 +251,7 @@ class RoomStateMessage(object):
             for user_id, guess in room.answers.items():
                 guessers_for_guesses[guess].append([user.nickname for user in users if user.user_id == user_id][0])
             guesses = [dict(
-                answer=guess, 
+                answer=guess,
                 guessers=guessers_for_guesses[guess],
                 is_correct=(guess == room.question.answer)
                 ) for guess in all_guesses]
@@ -268,7 +268,7 @@ class RoomStateMessage(object):
                 room_id = room.room_id,
                 status = room.status,
                 users = [dict(
-                    nickname=user.nickname, 
+                    nickname=user.nickname,
                     score_change=room.score_changes.get(user.user_id, 0)
                     ) for user in users],
                 question = room.question.question,
@@ -280,12 +280,12 @@ class RoomStateMessage(object):
                 room_id = room.room_id,
                 status = room.status,
                 users = [dict(
-                    nickname=user.nickname, 
-                    score=user.score, 
+                    nickname=user.nickname,
+                    score=user.score,
                     score_change=room.score_changes.get(user.user_id, 0)
                     ) for user in users],
-                time_to_switch = room.time_to_switch,
-                switch_interval = switch_interval
+                #time_to_switch = room.time_to_switch,
+                #switch_interval = switch_interval
                 )
         elif room.status == "gameover":
             return dict(
