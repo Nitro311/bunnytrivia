@@ -555,15 +555,15 @@ class AdminImportHandler(webapp2.RequestHandler):
         if not key:
             key = str(uuid.uuid4())
             memcache.set("security_through_obscurity", key)
-            logging.info("security_through_obscurity=%s" % key)
-            return
 
+        logging.info("security_through_obscurity=%s" % key)
         if self.request.get('key') != key:
             return
 
+        self.response.out.write('Importing\n')
         delete_all_questions()
         import_questions_if_needed()
-        self.response.out.write('Import complete')
+        self.response.out.write('Import complete\n')
 
 class AdminExportHandler(webapp2.RequestHandler):
     def get(self):
@@ -572,17 +572,15 @@ class AdminExportHandler(webapp2.RequestHandler):
         if not key:
             key = str(uuid.uuid4())
             memcache.set("security_through_obscurity", key)
-            logging.info("security_through_obscurity=%s" % key)
-            return
 
+        logging.info("security_through_obscurity=%s" % key)
         if self.request.get('key') != key:
             return
 
-        self.response.out.write("<pre>")
+        self.response.out.write("<pre>\n")
         for line in export_questions():
             self.response.out.write("%s\n" % line)
-
-        self.response.out.write("</pre>")
+        self.response.out.write("</pre>\n")
 
 # TODO: May want to add additonal answers as spelling suggestions
 # TODO: Add back in the "answers to the questions" as potential spelling words [question.answer for question in questions]
