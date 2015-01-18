@@ -39,6 +39,10 @@
 
 			}
 
+			#timer {
+				width: 60px;
+			}
+
 			input[type=text] {
 				text-transform: uppercase;
 			}
@@ -66,6 +70,7 @@
 						<span class="icon-bar"></span>
 					</button>
 					<a class="navbar-brand" href="#"><img src="/images/logo.png" alt="Bunny Trivia"></a>
+					<div id="timer" class="navbar-brand"></div>
 				</div>
 				<div id="navbar" class="collapse navbar-collapse">
 					<ul class="nav navbar-nav navbar-right">
@@ -264,10 +269,12 @@
 
 
 
-		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.qrcode/1.0/jquery.qrcode.min.js"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0/handlebars.min.js"></script>
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+		<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+		<script src="//cdnjs.cloudflare.com/ajax/libs/jquery.qrcode/1.0/jquery.qrcode.min.js"></script>
+		<script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0/handlebars.min.js"></script>
+		<script src="//cdnjs.cloudflare.com/ajax/libs/snap.svg/0.3.0/snap.svg-min.js"></script>
+		<script src="/js/jquery.polartimer.js"></script>
 		<script src="/_ah/channel/jsapi"></script>
 
 		<script>
@@ -386,6 +393,21 @@
 					} else {
 						console.log('Unknown room status: ' + JSON.stringify(data));
 					}
+
+					if (data.room.switch_interval) {
+						console.log("setting timer to " + (data.room.switch_interval / 1000.0));
+						$('#timer').polartimer('destroy');
+						$('#timer').polartimer({
+							timerSeconds: data.room.switch_interval / 1000.0,
+							color: '#ff5016',
+							opacity: 0.8
+						});
+
+						$('#timer').polartimer('start');
+					} else {
+						$('#timer').polartimer('destroy');
+					}
+
 					roomState = data.room.status;
 				} else {
 					console.log('Unknown message received: ' + JSON.stringify(data));
