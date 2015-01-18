@@ -471,11 +471,15 @@
 				$('body').on('click', '.answer-button', function() {
 					sendMessage('/sendanswer', { 'answer': $(this).text() });
 					showLoading();
+					window.buttonacceptsound.play();
 				});
 				window.buttonacceptsound = new Audio();
 				window.buttonacceptsound.src = 'buttonaccept.mp3';
 				window.buttondeclinesound = new Audio();
 				window.buttondeclinesound.src = 'buttondecline.mp3';
+				window.scorecountupsound = new Audio();
+				window.scorecountupsound.src = 'score_countup.mp3';
+				
 			}
 
 			Handlebars.registerHelper("debug", function (optionalValue) {
