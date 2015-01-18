@@ -8,8 +8,6 @@ class WordFixer(object):
             additional_words = ""
         if isinstance(additional_words, (list, tuple, set)):
             additional_words = " " + string.join(list(additional_words))
-        import logging
-        logging.info(additional_words)
         self._NWORDS = self._train(self._words(file(word_file_path).read() + additional_words))
         self._numwords = { "and": (1, 0) }
         units = [
@@ -63,11 +61,8 @@ class WordFixer(object):
         # Strip common phrases
         guess = re.sub('^(THE|AN|A) ', '', guess)
         guess = re.sub(' & ', ' AND ', guess)
-        import logging
-        logging.info(guess)
         # Replace CAMPBELL'S WITH CAMPBELLS
         guess = re.sub("([A-Z])'S\\b", "\\1S", guess)
-        logging.info(guess)
 
         return guess
 

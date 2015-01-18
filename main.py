@@ -7,13 +7,14 @@ import time
 import string
 import uuid
 import webapp2
+from types import GeneratorType
 from google.appengine.api import channel
 from google.appengine.api import users
 from google.appengine.api import memcache
 from google.appengine.ext import db
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
-from questions import questions
+from models.dbquestion import Answer, DbQuestion, import_questions_if_needed, import_questions, export_questions, delete_all_questions
 from wordfixer import WordFixer
 
 class DateTimeJSONEncoder(json.JSONEncoder):
@@ -21,7 +22,7 @@ class DateTimeJSONEncoder(json.JSONEncoder):
         self.sort_keys = True
         if isinstance(obj, (datetime.datetime, datetime.date)):
             return obj.isoformat()[:-3] + "Z"
-        if isinstance(obj, set):
+        if isinstance(obj, (set, GeneratorType)):
             return list(obj)
         else:
             return obj.__dict__
@@ -60,7 +61,7 @@ class Room(object):
 
     def set_answer(self, user_id, answer):
         if self.status == 'questionanswer':
-            if answer in self.guesses.values() or answer == self.question.answer:
+            if answer in self.guesses.values() or answer == self.question.answer or answer in self.question.get_just_answers():
                 self.answers[user_id] = answer
                 if len(self.user_ids) == len(self.answers):
                     self.advance_state(ignore_time=True)
@@ -107,7 +108,8 @@ class Room(object):
 
 
     def pick_wrong_answers(self):
-        possible_answers = [answer.upper() for answer in self.question.answers]
+        # TODO: Factor in the shows, picks, and likes to get better wrong answers
+        possible_answers = [answer.upper() for answer in self.question.get_just_answers()]
         random.shuffle(possible_answers)
         self.wrong_answers = set(possible_answers[:max(1, 4 - len(set(self.guesses.values())))])
 
@@ -116,7 +118,7 @@ class Room(object):
         self.answers = {}
         self.score_changes = {}
         # TODO: Make sure we don't pick the same question as before
-        self.question = random.choice(questions)
+        self.question = DbQuestion.get_random()
         self.question.answer = wordfixer.standardize_guess(self.question.answer)
 
     def advance_state(self, ignore_time):
@@ -546,8 +548,45 @@ class RoomSendAnswerHandler(BaseRoomHandler):
         self.add_room_message(room.room_id, RoomStateMessage(room, user))
         self.send_messages()
 
+class AdminImportHandler(webapp2.RequestHandler):
+    def get(self):
+        key = memcache.get("security_through_obscurity")
+
+        if not key:
+            key = str(uuid.uuid4())
+            memcache.set("security_through_obscurity", key)
+            logging.info("security_through_obscurity=%s" % key)
+            return
+
+        if self.request.get('key') != key:
+            return
+
+        delete_all_questions()
+        import_questions_if_needed()
+        self.response.out.write('Import complete')
+
+class AdminExportHandler(webapp2.RequestHandler):
+    def get(self):
+        key = memcache.get("security_through_obscurity")
+
+        if not key:
+            key = str(uuid.uuid4())
+            memcache.set("security_through_obscurity", key)
+            logging.info("security_through_obscurity=%s" % key)
+            return
+
+        if self.request.get('key') != key:
+            return
+
+        self.response.out.write("<pre>")
+        for line in export_questions():
+            self.response.out.write("%s\n" % line)
+
+        self.response.out.write("</pre>")
+
 # TODO: May want to add additonal answers as spelling suggestions
-wordfixer = WordFixer(os.path.join(os.path.split(__file__)[0], 'data/words.txt'), [question.answer for question in questions])
+# TODO: Add back in the "answers to the questions" as potential spelling words [question.answer for question in questions]
+wordfixer = WordFixer(os.path.join(os.path.split(__file__)[0], 'data/words.txt'))
 
 app = webapp2.WSGIApplication([
     ('/', IndexHandler),
@@ -559,5 +598,8 @@ app = webapp2.WSGIApplication([
     ('/room/([A-Za-z]+)/sendguess', RoomSendGuessHandler),
     ('/room/([A-Za-z]+)/sendanswer', RoomSendAnswerHandler),
     ('/room/([A-Za-z]+)/setnickname', RoomSetNicknameHandler),
-    ('/room/([A-Za-z]+)/startgame', RoomStartGameHandler)
+    ('/room/([A-Za-z]+)/startgame', RoomStartGameHandler),
+
+    ('/admin/import', AdminImportHandler),
+    ('/admin/export', AdminExportHandler)
     ], debug=True)
