@@ -80,9 +80,8 @@ class DbQuestion(db.Model):
             raise TypeError("Expected a list of Answer objects for argument put_value")
 
     def to_python_code(self):
-        # TODO: Escape double quotes
         return '    DbQuestion(index=%d, theme="%s", question="%s", answer="%s", shows=%s, likes=%s, answers_raw="%s").put()' % (
-            self.index, self.theme, self.question, self.answer, str(self.shows) if self.shows else "None", str(self.likes) if self.likes else "None", self.answers_raw)
+            self.index, self.theme, self.question.replace('"', '\\"'), self.answer, str(self.shows) if self.shows else "None", str(self.likes) if self.likes else "None", self.answers_raw)
 
     def __str__(self):
         from pprint import PrettyPrinter
@@ -93,8 +92,8 @@ def export_questions():
     query.order('index')
     offset = 0
     while True:
-        entries = query.fetch(limit=3, offset=offset)
-        offset += 3
+        entries = query.fetch(limit=100, offset=offset)
+        offset += 100
         if not entries:
             return
         for entry in entries:
@@ -139,7 +138,7 @@ def import_questions():
     DbQuestion(index=16, theme="Religion/Mythology", question="What religious movement began with Martin Luther's attack on the sale of indulgences?", answer="Reformation", shows=None, likes=None, answers_raw="Protestation||0||0||0||True\/\/Enlightenment||0||0||0||True").put()
     DbQuestion(index=17, theme="Religion/Mythology", question="What Saudi Arabian city was the birthplace of the prophet Muhammad?", answer="Mecca", shows=None, likes=None, answers_raw="Baghdad||0||0||0||True\/\/Babylon||0||0||0||True").put()
     DbQuestion(index=18, theme="Religion/Mythology", question="What storied city on the Euphrates River was 55 miles south of Baghdad?", answer="Babylon", shows=None, likes=None, answers_raw="Mecca||0||0||0||True\/\/Jeruselum||0||0||0||True").put()
-    DbQuestion(index=19, theme="Religion/Mythology", question="What biblical place name means ""pleasure""?", answer="Eden", shows=None, likes=None, answers_raw="Solomon's temple||0||0||0||True\/\/Babylon||0||0||0||True").put()
+    DbQuestion(index=19, theme="Religion/Mythology", question="What biblical place name means \"pleasure\"?", answer="Eden", shows=None, likes=None, answers_raw="Solomon's temple||0||0||0||True\/\/Babylon||0||0||0||True").put()
     DbQuestion(index=20, theme="Religion/Mythology", question="What city did Napoleon occupy in 1798, sending Pope Pius VI to the south of France?", answer="Rome", shows=None, likes=None, answers_raw="Tripoli||0||0||0||True\/\/Venice||0||0||0||True").put()
     DbQuestion(index=21, theme="Religion/Mythology", question="What was the world's principal Christian city before it fell to the Ottoman Turks in 1453?", answer="Constantinople", shows=None, likes=None, answers_raw="Rome||0||0||0||True").put()
     DbQuestion(index=22, theme="Religion/Mythology", question="What nation's Catholics saw the Pope make a triumphant homecoming visit in 1980?", answer="Poland", shows=None, likes=None, answers_raw="Hungary||0||0||0||True\/\/Romania||0||0||0||True").put()
@@ -283,7 +282,7 @@ def import_questions():
     DbQuestion(index=160, theme="Food", question="What Italian Cheese usually tops a pizza?", answer="Mozzarella", shows=None, likes=None, answers_raw="").put()
     DbQuestion(index=161, theme="Food", question="Port Salut is what?", answer="Cheese", shows=None, likes=None, answers_raw="").put()
     DbQuestion(index=162, theme="Food", question="Who talked of eating human liver washed down with Chianti?", answer="Hannibal Lecter", shows=None, likes=None, answers_raw="").put()
-    DbQuestion(index=163, theme="Food", question="Who, according to the TV commercial, \'makes exceedingly good cakes ""?", answer="Mr Kipling", shows=None, likes=None, answers_raw="").put()
+    DbQuestion(index=163, theme="Food", question="Who, according to the TV commercial, \"makes exceedingly good cakes\"?", answer="Mr Kipling", shows=None, likes=None, answers_raw="").put()
     DbQuestion(index=164, theme="Food", question="What vegetable is sold mainly before 30th October?", answer="Pumpkin", shows=None, likes=None, answers_raw="").put()
     DbQuestion(index=165, theme="Food", question="Whats the english translation for the french word crepe?", answer="Pancake", shows=None, likes=None, answers_raw="").put()
     DbQuestion(index=166, theme="Food", question="What is a macadamia?", answer="Nut", shows=None, likes=None, answers_raw="").put()
@@ -328,7 +327,7 @@ def import_questions():
     DbQuestion(index=205, theme="Food", question="Which cheese is made in reverse?", answer="Edam", shows=None, likes=None, answers_raw="").put()
     DbQuestion(index=206, theme="Food", question="What variety of banana shares its name with the title of a Bond movie?", answer="Goldfinger", shows=None, likes=None, answers_raw="").put()
     DbQuestion(index=207, theme="Food", question="Conference, Bartlett and Kaiser are all varieties of which fruit?", answer="Pear", shows=None, likes=None, answers_raw="").put()
-    DbQuestion(index=208, theme="Food", question="Which product is advertised on TV with the slogan, ""Once you pop you can't stop""?", answer="Pringles", shows=None, likes=None, answers_raw="").put()
+    DbQuestion(index=208, theme="Food", question="Which product is advertised on TV with the slogan, \"Once you pop you can't stop\"?", answer="Pringles", shows=None, likes=None, answers_raw="").put()
     DbQuestion(index=209, theme="Food", question="What is the official national cheese of Greece?", answer="Feta", shows=None, likes=None, answers_raw="").put()
     DbQuestion(index=210, theme="Food", question="Which variety of orange was named after a Japanese province?", answer="Satsuma", shows=None, likes=None, answers_raw="").put()
     DbQuestion(index=211, theme="Food", question="Marzipan is made from which nuts?", answer="Almonds", shows=None, likes=None, answers_raw="").put()
@@ -384,4 +383,4 @@ def import_questions():
     DbQuestion(index=261, theme="Food", question="What is the only fruit named for its colour?", answer="Orange", shows=None, likes=None, answers_raw="").put()
     DbQuestion(index=262, theme="Food", question="Traditionally at a fair ground what fruit would be covered with toffee?", answer="Apple", shows=None, likes=None, answers_raw="").put()
     DbQuestion(index=263, theme="Food", question="This herb is used to flavour Pernod?", answer="Aniseed", shows=None, likes=None, answers_raw="").put()
-    DbQuestion(index=264, theme="Food", question="This milk is a basic ingredient in Thai cookery?", answer="Coconut milk", shows=None, likes=None, answers_raw="")
+    DbQuestion(index=264, theme="Food", question="This milk is a basic ingredient in Thai cookery?", answer="Coconut milk", shows=None, likes=None, answers_raw="").put()
