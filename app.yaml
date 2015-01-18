@@ -10,8 +10,6 @@ handlers:
   application_readable: true
 - url: /images
   static_dir: images
-  - url: /sounds
-  static_dir: static/sounds
 - url: /(robots\.txt|favicon\.ico|apple-touch-icon.*\.png|mstile-*\.png|crossdomain\.xml|humans\.txt)
   static_files: static/\1
   upload: static/(.*)
