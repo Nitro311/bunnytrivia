@@ -65,6 +65,8 @@ class DbQuestion(db.Model):
     answers_raw = db.TextProperty(indexed=False)
 
     def get_just_answers(self):
+        if not self.answers_raw:
+            return []
         return [Answer(raw).answer.upper() for raw in string.split(self.answers_raw, INTERDIVIDER)]
 
     def get_answers(self):
