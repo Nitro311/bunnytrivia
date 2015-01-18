@@ -445,8 +445,6 @@
 			}
 
 			function startupCommands() {
-				var bleep = new Audio();
-				bleep.src = 'bleep.mp3';
 				drawNickname();
 				showLoading();
 				establishMessaging();
@@ -474,11 +472,11 @@
 					window.buttonacceptsound.play();
 				});
 				window.buttonacceptsound = new Audio();
-				window.buttonacceptsound.src = 'buttonaccept.mp3';
+				window.buttonacceptsound.src = '/sounds/buttonaccept.mp3';
 				window.buttondeclinesound = new Audio();
-				window.buttondeclinesound.src = 'buttondecline.mp3';
+				window.buttondeclinesound.src = '/sounds/buttondecline.mp3';
 				window.scorecountupsound = new Audio();
-				window.scorecountupsound.src = 'score_countup.mp3';
+				window.scorecountupsound.src = '/sounds/score_countup.mp3';
 				
 			}
 
