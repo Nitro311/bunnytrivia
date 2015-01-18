@@ -42,7 +42,7 @@ questions = [
     question(theme = "Religion/Mythology", question = "What language is Jesus believed to have spoken?", answer = "Aramaic", answers = ["Hebrew", "Greek"]),
     question(theme = "Religion/Mythology", question = "According to the Bible, what weapons was the Philistine giant Goliath carrying when he was slain by David?", answer = "A sword and a spear", answers = []),
     question(theme = "Religion/Mythology", question = "According to the Bible, how many pearly gates are there?", answer = "12", answers = []),
-    question(theme = "Religion/Mythology", question = "What were the names of the three wise men?", answer = "Balthazar, Caspar and Melchior", answers = []),
+    question(theme = "Religion/Mythology", question = "What were the names of the three wise men?", answer = "Balthazar, Caspar and Melchior", answers = ["Merlin"]),
     question(theme = "Religion/Mythology", question = "Who were the parents of King Solomon?", answer = "David and Bathsheba", answers = []),
     question(theme = "Religion/Mythology", question = "Name the two books of the Bible named after women.", answer = "Ruth and Esther", answers = []),
     question(theme = "Religion/Mythology", question = "In the Old Testament, who was Jezebel's husband?", answer = "Ahab, King of Israel", answers = []),
