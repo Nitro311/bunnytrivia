@@ -313,7 +313,7 @@
 				var channel = new goog.appengine.Channel(token);
 				var socket = channel.open();
 				socket.onopen = function() {
-					window.setTimeout(function() { sendMessage('/connect'); }, 100);
+					setTimeout(function() { sendMessage('/connect'); }, 100);
 				};
 				socket.onmessage = function(evt) {
 					var eventData = JSON.parse(evt.data);
@@ -403,6 +403,13 @@
 				this.html(compiled[template](data));
 			};
 
+			// Sounds
+			acceptAudio = new Audio();
+			acceptAudio.src = '/sounds/buttonaccept.mp3';
+			declineAudio = new Audio();
+			declineAudio.src = '/sounds/buttondecline.mp3';
+			scoreCountUpAudio = new Audio();
+			scoreCountUpAudio.src = '/sounds/score_countup.mp3';
 
 			// Miscellaneous
 			function setNextCheckState(interval) {
@@ -440,6 +447,7 @@
 				if (guess) {
 					sendMessage('/sendguess', 'guess=' + guess);
 					showLoading();
+					acceptAudio.play();
 				}
 				return false;
 			}
@@ -469,15 +477,8 @@
 				$('body').on('click', '.answer-button', function() {
 					sendMessage('/sendanswer', { 'answer': $(this).text() });
 					showLoading();
-					window.buttonacceptsound.play();
+					acceptAudio.play();
 				});
-				window.buttonacceptsound = new Audio();
-				window.buttonacceptsound.src = '/sounds/buttonaccept.mp3';
-				window.buttondeclinesound = new Audio();
-				window.buttondeclinesound.src = '/sounds/buttondecline.mp3';
-				window.scorecountupsound = new Audio();
-				window.scorecountupsound.src = '/sounds/score_countup.mp3';
-				
 			}
 
 			Handlebars.registerHelper("debug", function (optionalValue) {
