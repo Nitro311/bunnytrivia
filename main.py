@@ -14,7 +14,7 @@ from google.appengine.api import memcache
 from google.appengine.ext import db
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
-from models.dbquestion import Answer, DbQuestion, import_questions_if_needed, import_questions, export_questions, delete_all_questions
+from models.dbquestion import Answer, DbQuestion, import_questions_if_needed, import_questions, export_questions, delete_all_questions, DbNewQuestion
 from wordfixer import WordFixer
 
 class DateTimeJSONEncoder(json.JSONEncoder):
@@ -363,7 +363,9 @@ class IndexHandler(webapp2.RequestHandler):
     def get(self):
         template_values = {}
         if (self.request.get("reason") == "room_not_found"):
-                template_values = { "alert": "The room was not found"}
+            template_values = { "alert": "The room was not found", "alert_class":"danger"}
+        if (self.request.get("reason") == "question_added"):
+            template_values = { "alert": "The Question was succssesfuly added to the database!", "alert_class":"success"}
         path = os.path.join(os.path.dirname(__file__), 'index.html')
         self.response.out.write(template.render(path, template_values))
 
@@ -547,7 +549,30 @@ class RoomSendAnswerHandler(BaseRoomHandler):
 
         self.add_room_message(room.room_id, RoomStateMessage(room, user))
         self.send_messages()
-
+class NewQuestionHandler(webapp2.RequestHandler):
+    def get(self):
+        template_values = {}
+        path = os.path.join(os.path.dirname(__file__), 'newquestion.html')
+        self.response.out.write(template.render(path, template_values))
+    
+    def post(self):
+        question=self.request.get("question")
+        answer=self.request.get("answer")
+        name=self.request.get("name")
+        fakeanswers=[]
+        fakeanswers.append(self.request.get("fakeanswer1"))
+        fakeanswers.append(self.request.get("fakeanswer2"))
+        fakeanswers.append(self.request.get("fakeanswer3"))
+        if self.request.get("fakeanswer4"):
+            fakeanswers.append(self.request.get("fakeanswer4"))
+        if self.request.get("fakeanswer5"):
+            fakeanswers.append(self.request.get("fakeanswer5"))
+            
+        DbNewQuestion(question=question, answer=answer, fakeanswers=fakeanswers).put()
+        
+        url = self.request.host_url + "?reason=question_added"
+        return self.redirect(url)
+        
 class AdminImportHandler(webapp2.RequestHandler):
     def get(self):
         key = memcache.get("security_through_obscurity")
@@ -597,7 +622,8 @@ app = webapp2.WSGIApplication([
     ('/room/([A-Za-z]+)/sendanswer', RoomSendAnswerHandler),
     ('/room/([A-Za-z]+)/setnickname', RoomSetNicknameHandler),
     ('/room/([A-Za-z]+)/startgame', RoomStartGameHandler),
-
+	('/newquestion',NewQuestionHandler),
+	
     ('/admin/import', AdminImportHandler),
     ('/admin/export', AdminExportHandler)
     ], debug=True)

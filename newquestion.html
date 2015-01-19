@@ -45,21 +45,39 @@
 				</div>
 			</div>
 		</nav>
-		<div class="container">	
-			<div class="alert alert-{{alert_class}}" role="alert" id="alertbar">
-				{{ alert }}
-			</div>
-		
-			<div id="welcomepage" class="page">
-				<form action="/room" method="POST">
-					<a href="#" class="btn btn-lg btn-primary" id="joinbutton">Join</a>
-					<button type="submit" class="btn btn-lg btn-success" id="startbutton">Start</button>
-					</br>
-					</br>
-					<a href="/newquestion" class="btn btn-lg btn-info" id="questioncreator">Create a new Question!</a>
-				</form>
-			</div>
+		<div class="container">
+			 <form method="post">
+				<div class="form-group">
+					<label for="question">Question</label>
+					<input type=text class="form-control"name="question" placeholder="What type of food do bunnys eat?" autofocus required>
+				</div>
+				<div class="form-group">
+					<label for="answer">Real Answer</label>
+					<input type=text class="form-control" name="answer" placeholder="Carrot" required>
+				</div>
+				<div class="form-group">
+					<label for="fakeanswer1">Fake Answers</label>
+					<input type=text class="form-control" name="fakeanswer1" placeholder="Pineapple"required>
+					<input type=text class="form-control" name="fakeanswer2" placeholder="French fries"required>
+					<input type=text class="form-control" name="fakeanswer3" placeholder="Pizza"required>
+					<input type=text class="form-control" name="fakeanswer4" placeholder="Ice Cream">
+					<input type=text class="form-control" name="fakeanswer5" placeholder="Fish Food">
+				</div>
+				<button type="submit" class="btn btn-primary">Submit!</button>
+			</form>
+			<!--<form method="post">
+				<div>
+				<input type=text id="questioninput" placeholder="What type of food do bunnys eat?(Question)">
+				</div>
+				<div>
+				<input type=text id="answerinput"placeholder="Carrots">
+				</div>
+				<input type=text id="fakeanswersinput"placeholder="Pineapple, French fries, Bananas">
+				<input type=text id="nameinput"placeholder="Fred Johnson">
+				<input type=text id="themeinput"placeholder="Bunnys">
+			</form>-->
 		</div>
+		
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
 		
