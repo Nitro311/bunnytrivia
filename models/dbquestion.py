@@ -24,7 +24,13 @@ class Answer(object):
 
     def to_string(self):
         return string.join([self.answer, str(self.picks), str(self.likes), str(self.shows), str(self.is_approved)], INTRADIVIDER)
-
+class DbNewQuestion():
+    theme = db.StringProperty(required=True, indexed=True)
+    question = db.StringProperty(required=True, indexed=False)
+    answer = db.StringProperty(required=True, indexed=False)
+    answers= db.StringListProperty(indexed=False)
+	created=db.DateTimeProperty(auto_now_add=True)
+	
 class DbQuestion(db.Model):
     def __init__(self, *args, **kwargs):
         key = str(kwargs['index'])
