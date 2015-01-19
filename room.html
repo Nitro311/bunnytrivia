@@ -57,6 +57,9 @@
 				background-size: 40px 40px;
 				background-repeat: no-repeat;
 			}
+			tr.winner {
+				background-color: orange !important;
+			}
 		</style>
 	</head>
 	<body>
@@ -239,9 +242,27 @@
 		</script>
 
 		<script id="gameovertemplate" type="text/x-handlebars-template">
-			Game is over, show winner?
+			<h1>Game Over</h1>
+
+			<table class="table table-striped">
+				<thead>
+					<tr>
+						<th>Player:</th>
+						<th>Score:</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% templatetag openvariable %}#users{% templatetag closevariable %}
+					<tr class="{% templatetag openvariable %}#if @first{% templatetag closevariable %}winner{% templatetag openvariable %}/if{% templatetag closevariable %}">
+						<td>{% templatetag openvariable %}nickname{% templatetag closevariable %}</td>
+						<td>{% templatetag openvariable %}score{% templatetag closevariable %}</td>
+					</tr>
+					{% templatetag openvariable %}/users{% templatetag closevariable %}
+				</tbody>
+			</table>
 
 			<button id="startgamenow" class="btn btn-lg btn-success">Restart</button>
+		
 		</script>
 
 		<script id="answeredquestiontemplate" type="text/x-handlebars-template">
