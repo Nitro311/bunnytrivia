@@ -628,16 +628,6 @@ class AdminNewQuestionHandler(webapp2.RequestHandler):
             logging.warn("Failed to post!")
 class AdminExportHandler(webapp2.RequestHandler):
     def get(self):
-        key = memcache.get("security_through_obscurity")
-
-        if not key:
-            key = str(uuid.uuid4())
-            memcache.set("security_through_obscurity", key)
-
-        logging.info("security_through_obscurity=%s" % key)
-        if self.request.get('key') != key:
-            return
-
         self.response.out.write("<pre>\n")
         for line in export_questions():
             self.response.out.write("%s\n" % line)
@@ -645,16 +635,6 @@ class AdminExportHandler(webapp2.RequestHandler):
 
 class AdminImportHandler(webapp2.RequestHandler):
     def get(self):
-        key = memcache.get("security_through_obscurity")
-
-        if not key:
-            key = str(uuid.uuid4())
-            memcache.set("security_through_obscurity", key)
-
-        logging.info("security_through_obscurity=%s" % key)
-        if self.request.get('key') != key:
-            return
-
         self.response.out.write('Importing\n')
         delete_all_questions()
         import_questions_if_needed()
