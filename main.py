@@ -14,7 +14,7 @@ from google.appengine.api import memcache
 from google.appengine.ext import db
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
-from models.dbquestion import DbQuestion, import_questions_if_needed, export_questions, delete_all_questions
+from models.dbquestion import DbQuestion, DbAnswer, import_questions_if_needed, export_questions, delete_all_questions
 from models.dbnewquestion import DbNewQuestion
 from wordfixer import WordFixer
 
@@ -576,8 +576,12 @@ class NewQuestionHandler(webapp2.RequestHandler):
 
 class AdminNewQuestionHandler(webapp2.RequestHandler):
     def get(self):
+        try:
+            offset=int(self.request.get('offset'))
+        except ValueError:
+            offset=0
         query=DbNewQuestion.all()
-        questions = list(query.run(limit=1))
+        questions = list(query.run(limit=1, offset=offset))
 
         if not questions:
             url = self.request.host_url + "?reason=no_questions"
@@ -596,25 +600,32 @@ class AdminNewQuestionHandler(webapp2.RequestHandler):
         self.response.out.write(template.render(path, template_values))
 
     def post(self):
-        pass
-        # question=self.request.get("question")
-        # answer=self.request.get("answer")
-        # name=self.request.get("name")
-        # fakeanswers=[]
-        # fakeanswers.append(self.request.get("fakeanswer1"))
-        # fakeanswers.append(self.request.get("fakeanswer2"))
-        # fakeanswers.append(self.request.get("fakeanswer3"))
-        # if self.request.get("fakeanswer4"):
-            # fakeanswers.append(self.request.get("fakeanswer4"))
-        # if self.request.get("fakeanswer5"):
-            # fakeanswers.append(self.request.get("fakeanswer5"))
-
-        # query=DbNewQuestion().all()
-        # query.run(limit=1)
-
-        # url = self.request.host_url + "?reason=question_added"
-        # return self.redirect(url)
-
+        try:
+            offset=int(self.request.get('offset'))
+        except ValueError:
+            offset=0
+        if self.request.get('approve'):
+            query=DbNewQuestion.all()
+            questions = list(query.run(limit=1, offset=offset))
+            newquestion=questions[offset]
+            question=DbQuestion(index=DbQuestion.get_highest_index()+1, question=newquestion.question, answer=newquestion.answer, theme="Miscellaneous")
+            for fakeanswer in newquestion.fakeanswers:
+                DbAnswer(question=question,text=fakeanswer).put()
+            question.put()
+            newquestion.delete()
+            url = self.request.path_url + "?offset="+str(offset)
+            return self.redirect(url)
+        elif self.request.get('skip'):
+            url = self.request.path_url + "?offset="+str(offset+1)
+            return self.redirect(url)
+        elif self.request.get('delete'):
+            query=DbNewQuestion.all()
+            questions = list(query.run(limit=1, offset=offset))
+            questions[offset].delete()
+            url = self.request.path_url + "?offset="+str(offset)
+            return self.redirect(url)
+        else:
+            logging.warn("Failed to post!")
 class AdminExportHandler(webapp2.RequestHandler):
     def get(self):
         key = memcache.get("security_through_obscurity")
