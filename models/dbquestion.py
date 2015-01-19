@@ -34,6 +34,15 @@ class DbQuestion(db.Model):
             if result:
                 return result
 
+    @staticmethod
+    def get_highest_index():
+        # Fetch the highest index
+        query = DbQuestion.all()
+        query.order('-index')
+        highest_index = list(query.run(limit=1))[0].index
+        return highest_index
+
+
     index = db.IntegerProperty(required=True, indexed=True)
     theme = db.StringProperty(required=True, indexed=True)
     question = db.StringProperty(required=True, indexed=False)
