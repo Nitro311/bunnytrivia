@@ -18,7 +18,7 @@ handlers:
   static_files: static/\1
   upload: static/(.*)
 - url: /admin/.*
-  script: main.app
+  script: admin.main.app
   login: admin
 - url: /.*
   script: main.app
