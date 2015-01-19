@@ -50,7 +50,7 @@ class Room(object):
         self.room_id = self.create_random_id()
         self.user_ids = []
         self.host = None
-        self.reset_game();
+        self.reset_game()
 
     def set_guess(self, user_id, guess):
         if self.status == 'questionguess':
@@ -106,7 +106,6 @@ class Room(object):
             user.score += amount
             user.save()
             logging.info("%d total added to %s's score" % (amount, user.nickname))
-
 
     def pick_wrong_answers(self):
         # TODO: Factor in the shows, picks, and likes to get better wrong answers
@@ -181,7 +180,7 @@ class User(object):
         self.token = ''
         self.nickname = ''
         self.score = 0
-        self.is_ready = False;
+        self.is_ready = False
 
     def create_random_id(self):
         letters = string.ascii_lowercase
@@ -227,44 +226,44 @@ class RoomStateMessage(object):
 
         if room.status == 'waiting':
             return dict(
-                room_id = room.room_id,
-                status = room.status,
-                users = [dict(nickname=user.nickname, is_ready=user.is_ready) for user in users],
+                room_id=room.room_id,
+                status=room.status,
+                users=[dict(nickname=user.nickname, is_ready=user.is_ready) for user in users],
                 )
         elif room.status == "round":
             return dict(
-                room_id = room.room_id,
-                status = room.status,
-                round = room.round,
-                is_last_round = room.round == Room.last_round,
-                time_to_switch = room.time_to_switch,
-                switch_interval = switch_interval
+                room_id=room.room_id,
+                status=room.status,
+                round=room.round,
+                is_last_round=room.round == Room.last_round,
+                time_to_switch=room.time_to_switch,
+                switch_interval=switch_interval
                 )
         elif room.status == "questionguess":
             return dict(
-                room_id = room.room_id,
-                status = room.status,
-                question = room.question.question,
-                time_to_switch = room.time_to_switch,
-                switch_interval = switch_interval
+                room_id=room.room_id,
+                status=room.status,
+                question=room.question.question,
+                time_to_switch=room.time_to_switch,
+                switch_interval=switch_interval
                 )
         elif room.status == "questionanswer":
-            all_guesses = { guess for guess in room.guesses.values() }
+            all_guesses = {guess for guess in room.guesses.values()}
             all_guesses.add(room.question.answer)
             all_guesses |= room.wrong_answers
             return dict(
-                room_id = room.room_id,
-                status = room.status,
-                guesses = list(all_guesses),
-                question = room.question.question,
-                time_to_switch = room.time_to_switch,
-                switch_interval = switch_interval
+                room_id=room.room_id,
+                status=room.status,
+                guesses=list(all_guesses),
+                question=room.question.question,
+                time_to_switch=room.time_to_switch,
+                switch_interval=switch_interval
                 )
         elif room.status == "questionreveal":
-            all_guesses = { guess for guess in room.guesses.values() }
+            all_guesses = {guess for guess in room.guesses.values()}
             all_guesses.add(room.question.answer.upper())
             all_guesses |= room.wrong_answers
-            guessers_for_guesses = { guess:[] for guess in all_guesses }
+            guessers_for_guesses = {guess:[] for guess in all_guesses}
             for user_id, guess in room.answers.items():
                 guessers_for_guesses[guess].append([user.nickname for user in users if user.user_id == user_id][0])
             guesses = [dict(
@@ -273,42 +272,42 @@ class RoomStateMessage(object):
                 is_correct=(guess == room.question.answer)
                 ) for guess in all_guesses]
             return dict(
-                room_id = room.room_id,
-                status = room.status,
-                guesses = guesses,
-                question = room.question.question,
-                time_to_switch = room.time_to_switch,
-                switch_interval = switch_interval
+                room_id=room.room_id,
+                status=room.status,
+                guesses=guesses,
+                question=room.question.question,
+                time_to_switch=room.time_to_switch,
+                switch_interval=switch_interval
                 )
         elif room.status == "questionscore":
             return dict(
-                room_id = room.room_id,
-                status = room.status,
-                users = [dict(
+                room_id=room.room_id,
+                status=room.status,
+                users=[dict(
                     nickname=user.nickname,
                     score_change=room.score_changes.get(user.user_id, 0)
                     ) for user in users],
-                question = room.question.question,
-                time_to_switch = room.time_to_switch,
-                switch_interval = switch_interval
+                question=room.question.question,
+                time_to_switch=room.time_to_switch,
+                switch_interval=switch_interval
                 )
         elif room.status == "score":
             return dict(
-                room_id = room.room_id,
-                status = room.status,
-                users = [dict(
+                room_id=room.room_id,
+                status=room.status,
+                users=[dict(
                     nickname=user.nickname,
                     score=user.score,
                     score_change=room.score_changes.get(user.user_id, 0)
                     ) for user in users],
-                time_to_switch = room.time_to_switch,
-                switch_interval = switch_interval
+                time_to_switch=room.time_to_switch,
+                switch_interval=switch_interval
                 )
         elif room.status == "gameover":
             return dict(
-                room_id = room.room_id,
-                status = room.status,
-                users = [dict(nickname=user.nickname, score=user.score) for user in users]
+                room_id=room.room_id,
+                status=room.status,
+                users=[dict(nickname=user.nickname, score=user.score) for user in users]
                 )
 
 
@@ -363,14 +362,14 @@ class BaseRoomHandler(webapp2.RequestHandler):
 class IndexHandler(webapp2.RequestHandler):
     def get(self):
         template_values = {}
-        if (self.request.get("reason") == "room_not_found"):
-            template_values = { "alert": "The room was not found", "alert_class":"danger"}
-        if (self.request.get("reason") == "question_added"):
-            template_values = { "alert": "The Question was succssesfuly added to the database!", "alert_class":"success"}
-        if (self.request.get("reason") == "no_questions"):
-            template_values = { "alert": "No more question to evaluate!", "alert_class":"info"}
+        if self.request.get("reason") == "room_not_found":
+            template_values = {"alert": "The room was not found", "alert_class":"danger"}
+        if self.request.get("reason") == "question_added":
+            template_values = {"alert": "The Question was succssesfuly added to the database!", "alert_class":"success"}
+        if self.request.get("reason") == "no_questions":
+            template_values = {"alert": "No more question to evaluate!", "alert_class":"info"}
         path = os.path.join(os.path.dirname(__file__), 'index.html')
-        
+
         self.response.out.write(template.render(path, template_values))
 
 class RoomCheckStateHandler(BaseRoomHandler):
@@ -449,8 +448,7 @@ class RoomCreateHandler(webapp2.RequestHandler):
             user.save()
 
         room = Room()
-        # TODO: Figure out why the host doesn't get set right
-        room.host =  user.user_id
+        room.host = user.user_id
         room.save()
         url = self.request.host_url + "/room/" + room.room_id
         logging.info("Redirecting to %s", url)
@@ -467,7 +465,7 @@ class RoomViewHandler(BaseRoomHandler):
 
         logging.info("Creating channel for %s id: %s" % (user, user.user_id))
         channel_token = self.create_channel_token(user.user_id)
-        template_values = { 'channel_token': channel_token, 'user_id': user.user_id, 'room_id': room.room_id, 'nickname': user.nickname }
+        template_values = {'channel_token': channel_token, 'user_id': user.user_id, 'room_id': room.room_id, 'nickname': user.nickname}
         path = os.path.join(os.path.dirname(__file__), 'room.html')
         user_id = self.request.cookies.get("user_id")
         if not user_id or user.user_id != user_id:
@@ -542,7 +540,7 @@ class RoomSendAnswerHandler(BaseRoomHandler):
         room_id = room_id.upper()
         (room, user) = self.get_room_and_user(room_id)
         answer = self.request.get('answer').upper()
-        logging.info("Answer %s received %s by %s" % (answer ,room_id, user.user_id))
+        logging.info("Answer %s received %s by %s" % (answer, room_id, user.user_id))
 
         if not room:
             logging.warn("Room does not exist")
@@ -562,9 +560,9 @@ class NewQuestionHandler(webapp2.RequestHandler):
 
     def post(self):
         question = self.request.get("question")
-        answer=self.request.get("answer")
-        name=self.request.get("name")
-        fakeanswers=[]
+        answer = self.request.get("answer")
+        name = self.request.get("name")
+        fakeanswers = []
         fakeanswers.append(self.request.get("fakeanswer1"))
         fakeanswers.append(self.request.get("fakeanswer2"))
         fakeanswers.append(self.request.get("fakeanswer3"))
@@ -584,7 +582,7 @@ wordfixer = WordFixer(os.path.join(os.path.split(__file__)[0], 'data/words.txt')
 
 app = webapp2.WSGIApplication([
     ('/', IndexHandler),
-    ('/newquestion',NewQuestionHandler),
+    ('/newquestion', NewQuestionHandler),
 
     ('/room/?', RoomCreateHandler),
     ('/room/([A-Za-z]+)', RoomViewHandler),

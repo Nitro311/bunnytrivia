@@ -30,12 +30,12 @@ class AdminNewQuestionHandler(webapp2.RequestHandler):
         question=questions[0]
         template_values = {
             "question":question.question,
-            "answer":question.answer, 
-            "fakeanswer1":question.fakeanswers[0], 
-            "fakeanswer2":question.fakeanswers[1], 
-            "fakeanswer3":question.fakeanswers[2], 
+            "answer":question.answer,
+            "fakeanswer1":question.fakeanswers[0],
+            "fakeanswer2":question.fakeanswers[1],
+            "fakeanswer3":question.fakeanswers[2],
             "fakeanswer4":question.fakeanswers[3] if len(question.fakeanswers)==4 else "",
-            "fakeanswer5":question.fakeanswers[4] if len(question.fakeanswers)==5 else "" 
+            "fakeanswer5":question.fakeanswers[4] if len(question.fakeanswers)==5 else ""
             }
         path = os.path.join(os.path.dirname(__file__), 'adminnewquestion.html')
         self.response.out.write(template.render(path, template_values))
@@ -51,7 +51,7 @@ class AdminNewQuestionHandler(webapp2.RequestHandler):
             newquestion=questions[offset]
             question=DbQuestion(index=DbQuestion.get_highest_index()+1, question=newquestion.question, answer=newquestion.answer, theme="Miscellaneous")
             for fakeanswer in newquestion.fakeanswers:
-                DbAnswer(question=question,text=fakeanswer).put()
+                DbAnswer(question=question, text=fakeanswer).put()
             question.put()
             newquestion.delete()
             url = self.request.path_url + "?offset="+str(offset)
@@ -76,13 +76,13 @@ class AdminExportHandler(webapp2.RequestHandler):
 
 class AdminImportHandler(webapp2.RequestHandler):
     def get(self):
-        self.response.out.write('Importing\n')
+        self.response.out.write('Importing')
         delete_all_questions()
         import_questions_if_needed()
-        self.response.out.write('Import complete\n')
+        self.response.out.write(' complete')
 
 app = webapp2.WSGIApplication([
-    ('/admin/newquestion',AdminNewQuestionHandler),
+    ('/admin/newquestion', AdminNewQuestionHandler),
     ('/admin/questions/export', AdminExportHandler),
     ('/admin/questions/import', AdminImportHandler)
     ], debug=True)

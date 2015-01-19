@@ -54,12 +54,9 @@ class DbQuestion(db.Model):
     def get_just_answers(self):
         return [answer.text.upper() for answer in self.answers]
 
-    def get_answers(self):
-        return answers
-
     def to_python_code(self):
         q = '    q = DbQuestion(index=%d, theme="%s", question="%s", answer="%s", shows=%s, likes=%s); q.put();' % (self.index, self.theme, self.question.replace('"', '\\"'), self.answer, str(self.shows) if self.shows else "None", str(self.likes) if self.likes else "None")
-        return q + string.join([' DbAnswer(question=q,text="%s",is_approved=True).put();' % answer.text for answer in self.answers if answer.text])
+        return q + string.join([' DbAnswer(question=q, text="%s", is_approved=True).put();' % answer.text for answer in self.answers if answer.text])
 
     def __str__(self):
         from pprint import PrettyPrinter

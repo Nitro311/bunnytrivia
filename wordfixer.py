@@ -3,13 +3,13 @@ import re
 import string
 
 class WordFixer(object):
-    def __init__(self, word_file_path, additional_words = None):
+    def __init__(self, word_file_path, additional_words=None):
         if not additional_words:
             additional_words = ""
         if isinstance(additional_words, (list, tuple, set)):
             additional_words = " " + string.join(list(additional_words))
         self._NWORDS = self._train(self._words(file(word_file_path).read() + additional_words))
-        self._numwords = { "and": (1, 0) }
+        self._numwords = {"and": (1, 0)}
         units = [
             "zero", "one", "two", "three", "four", "five", "six", "seven", "eight",
             "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen",
@@ -20,17 +20,17 @@ class WordFixer(object):
 
         scales = ["hundred", "thousand", "million", "billion", "trillion"]
 
-        for idx, word in enumerate(units):  self._numwords[word] = (1, idx)
-        for idx, word in enumerate(tens):   self._numwords[word] = (1, idx * 10)
+        for idx, word in enumerate(units): self._numwords[word] = (1, idx)
+        for idx, word in enumerate(tens): self._numwords[word] = (1, idx * 10)
         for idx, word in enumerate(scales): self._numwords[word] = (10 ** (idx * 3 or 2), 0)
-    
+
     def _words(self, text):
-        return re.findall('[a-z]+', text.lower()) 
+        return re.findall('[a-z]+', text.lower())
 
     def _train(self, features):
         model = collections.defaultdict(lambda: 1)
-        for f in features:
-            model[f] += 1
+        for feature in features:
+            model[feature] += 1
         return model
 
     def _edits1(self, word):
