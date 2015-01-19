@@ -367,7 +367,10 @@ class IndexHandler(webapp2.RequestHandler):
             template_values = { "alert": "The room was not found", "alert_class":"danger"}
         if (self.request.get("reason") == "question_added"):
             template_values = { "alert": "The Question was succssesfuly added to the database!", "alert_class":"success"}
+        if (self.request.get("reason") == "no_questions"):
+            template_values = { "alert": "No more question to evaluate!", "alert_class":"info"}
         path = os.path.join(os.path.dirname(__file__), 'index.html')
+        
         self.response.out.write(template.render(path, template_values))
 
 class RoomCheckStateHandler(BaseRoomHandler):
