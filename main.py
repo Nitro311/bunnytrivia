@@ -14,7 +14,7 @@ from google.appengine.api import memcache
 from google.appengine.ext import db
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
-from models.dbquestion import Answer, DbQuestion, import_questions_if_needed, import_questions, export_questions, delete_all_questions, DbNewQuestion
+from models.dbquestion import DbQuestion, import_questions_if_needed, export_questions, delete_all_questions, DbNewQuestion
 from wordfixer import WordFixer
 
 class DateTimeJSONEncoder(json.JSONEncoder):
