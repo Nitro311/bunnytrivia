@@ -283,10 +283,10 @@ class RoomStateMessage(object):
             return dict(
                 room_id=room.room_id,
                 status=room.status,
-                users=[dict(
+                users=sorted([dict(
                     nickname=user.nickname,
                     score_change=room.score_changes.get(user.user_id, 0)
-                    ) for user in users],
+                    ) for user in users], key=lambda user: -1 * user.get('score_change')),
                 question=room.question.question,
                 time_to_switch=room.time_to_switch,
                 switch_interval=switch_interval
@@ -295,11 +295,11 @@ class RoomStateMessage(object):
             return dict(
                 room_id=room.room_id,
                 status=room.status,
-                users=[dict(
+                users=sorted(sorted([dict(
                     nickname=user.nickname,
                     score=user.score,
                     score_change=room.score_changes.get(user.user_id, 0)
-                    ) for user in users],
+                    ) for user in users], key=lambda user: -1 * user.get('score_change')), key=lambda user: -1 * user.get('score')),
                 time_to_switch=room.time_to_switch,
                 switch_interval=switch_interval
                 )
@@ -307,7 +307,7 @@ class RoomStateMessage(object):
             return dict(
                 room_id=room.room_id,
                 status=room.status,
-                users=[dict(nickname=user.nickname, score=user.score) for user in users]
+                users=sorted([dict(nickname=user.nickname, score=user.score) for user in users], key=lambda user: -1 * user.get('score'))
                 )
 
 
