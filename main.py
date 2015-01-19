@@ -573,22 +573,47 @@ class NewQuestionHandler(webapp2.RequestHandler):
         url = self.request.host_url + "?reason=question_added"
         return self.redirect(url)
         
-class AdminImportHandler(webapp2.RequestHandler):
+class AdminNewQuestionHandler(webapp2.RequestHandler):
     def get(self):
-        key = memcache.get("security_through_obscurity")
-
-        if not key:
-            key = str(uuid.uuid4())
-            memcache.set("security_through_obscurity", key)
-
-        logging.info("security_through_obscurity=%s" % key)
-        if self.request.get('key') != key:
-            return
-
-        self.response.out.write('Importing\n')
-        delete_all_questions()
-        import_questions_if_needed()
-        self.response.out.write('Import complete\n')
+        query=DbNewQuestion.all()
+        questions = list(query.run(limit=1))
+        
+        if not questions:
+            url = self.request.host_url + "?reason=no_questions"
+            return self.redirect(url)
+        question=questions[0]
+        template_values = {
+            "question":question.question,
+            "answer":question.answer, 
+            "fakeanswer1":question.fakeanswers[0], 
+            "fakeanswer2":question.fakeanswers[1], 
+            "fakeanswer3":question.fakeanswers[2], 
+            "fakeanswer4":question.fakeanswers[3] if len(question.fakeanswers)==4 else "",
+            "fakeanswer5":question.fakeanswers[4] if len(question.fakeanswers)==5 else "" 
+            }
+        path = os.path.join(os.path.dirname(__file__), 'adminnewquestion.html')
+        self.response.out.write(template.render(path, template_values))
+    
+    def post(self):
+        pass
+        # question=self.request.get("question")
+        # answer=self.request.get("answer")
+        # name=self.request.get("name")
+        # fakeanswers=[]
+        # fakeanswers.append(self.request.get("fakeanswer1"))
+        # fakeanswers.append(self.request.get("fakeanswer2"))
+        # fakeanswers.append(self.request.get("fakeanswer3"))
+        # if self.request.get("fakeanswer4"):
+            # fakeanswers.append(self.request.get("fakeanswer4"))
+        # if self.request.get("fakeanswer5"):
+            # fakeanswers.append(self.request.get("fakeanswer5"))
+            
+        # query=DbNewQuestion().all()
+        # query.run(limit=1)
+   
+        
+        # url = self.request.host_url + "?reason=question_added"
+        # return self.redirect(url)
 
 class AdminExportHandler(webapp2.RequestHandler):
     def get(self):
@@ -606,6 +631,23 @@ class AdminExportHandler(webapp2.RequestHandler):
         for line in export_questions():
             self.response.out.write("%s\n" % line)
         self.response.out.write("</pre>\n")
+        
+class AdminImportHandler(webapp2.RequestHandler):
+    def get(self):
+        key = memcache.get("security_through_obscurity")
+
+        if not key:
+            key = str(uuid.uuid4())
+            memcache.set("security_through_obscurity", key)
+
+        logging.info("security_through_obscurity=%s" % key)
+        if self.request.get('key') != key:
+            return
+
+        self.response.out.write('Importing\n')
+        delete_all_questions()
+        import_questions_if_needed()
+        self.response.out.write('Import complete\n')
 
 # TODO: May want to add additonal answers as spelling suggestions
 # TODO: Add back in the "answers to the questions" as potential spelling words [question.answer for question in questions]
@@ -623,7 +665,8 @@ app = webapp2.WSGIApplication([
     ('/room/([A-Za-z]+)/setnickname', RoomSetNicknameHandler),
     ('/room/([A-Za-z]+)/startgame', RoomStartGameHandler),
 	('/newquestion',NewQuestionHandler),
-	
-    ('/admin/import', AdminImportHandler),
-    ('/admin/export', AdminExportHandler)
+
+    ('/admin/newquestion',AdminNewQuestionHandler),	
+    ('/admin/questions/export', AdminExportHandler),
+    ('/admin/questions/import', AdminImportHandler)
     ], debug=True)
