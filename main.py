@@ -14,7 +14,8 @@ from google.appengine.api import memcache
 from google.appengine.ext import db
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
-from models.dbquestion import DbQuestion, import_questions_if_needed, export_questions, delete_all_questions, DbNewQuestion
+from models.dbquestion import DbQuestion, import_questions_if_needed, export_questions, delete_all_questions
+from models.dbnewquestion import DbNewQuestion
 from wordfixer import WordFixer
 
 class DateTimeJSONEncoder(json.JSONEncoder):
@@ -554,7 +555,7 @@ class NewQuestionHandler(webapp2.RequestHandler):
         template_values = {}
         path = os.path.join(os.path.dirname(__file__), 'newquestion.html')
         self.response.out.write(template.render(path, template_values))
-    
+
     def post(self):
         question=self.request.get("question")
         answer=self.request.get("answer")
@@ -567,17 +568,17 @@ class NewQuestionHandler(webapp2.RequestHandler):
             fakeanswers.append(self.request.get("fakeanswer4"))
         if self.request.get("fakeanswer5"):
             fakeanswers.append(self.request.get("fakeanswer5"))
-            
+
         DbNewQuestion(question=question, answer=answer, fakeanswers=fakeanswers).put()
-        
+
         url = self.request.host_url + "?reason=question_added"
         return self.redirect(url)
-        
+
 class AdminNewQuestionHandler(webapp2.RequestHandler):
     def get(self):
         query=DbNewQuestion.all()
         questions = list(query.run(limit=1))
-        
+
         if not questions:
             url = self.request.host_url + "?reason=no_questions"
             return self.redirect(url)
@@ -593,7 +594,7 @@ class AdminNewQuestionHandler(webapp2.RequestHandler):
             }
         path = os.path.join(os.path.dirname(__file__), 'adminnewquestion.html')
         self.response.out.write(template.render(path, template_values))
-    
+
     def post(self):
         pass
         # question=self.request.get("question")
@@ -607,11 +608,10 @@ class AdminNewQuestionHandler(webapp2.RequestHandler):
             # fakeanswers.append(self.request.get("fakeanswer4"))
         # if self.request.get("fakeanswer5"):
             # fakeanswers.append(self.request.get("fakeanswer5"))
-            
+
         # query=DbNewQuestion().all()
         # query.run(limit=1)
-   
-        
+
         # url = self.request.host_url + "?reason=question_added"
         # return self.redirect(url)
 
@@ -631,7 +631,7 @@ class AdminExportHandler(webapp2.RequestHandler):
         for line in export_questions():
             self.response.out.write("%s\n" % line)
         self.response.out.write("</pre>\n")
-        
+
 class AdminImportHandler(webapp2.RequestHandler):
     def get(self):
         key = memcache.get("security_through_obscurity")
@@ -664,9 +664,9 @@ app = webapp2.WSGIApplication([
     ('/room/([A-Za-z]+)/sendanswer', RoomSendAnswerHandler),
     ('/room/([A-Za-z]+)/setnickname', RoomSetNicknameHandler),
     ('/room/([A-Za-z]+)/startgame', RoomStartGameHandler),
-	('/newquestion',NewQuestionHandler),
+    ('/newquestion',NewQuestionHandler),
 
-    ('/admin/newquestion',AdminNewQuestionHandler),	
+    ('/admin/newquestion',AdminNewQuestionHandler),
     ('/admin/questions/export', AdminExportHandler),
     ('/admin/questions/import', AdminImportHandler)
     ], debug=True)

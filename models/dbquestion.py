@@ -3,12 +3,6 @@ import random
 import string
 from google.appengine.ext import db
 
-class DbNewQuestion(db.Model):
-    question = db.StringProperty(required=True, indexed=False)
-    answer = db.StringProperty(required=True, indexed=False)
-    fakeanswers= db.StringListProperty(indexed=False)
-    created=db.DateTimeProperty(auto_now_add=True)
-
 class DbQuestion(db.Model):
     def __init__(self, *args, **kwargs):
         key = str(kwargs['index'])
@@ -87,7 +81,7 @@ def import_questions_if_needed():
     if DbQuestion.all(keys_only=True).count(1) > 0:
         return
     logging.info("No questions found, importing them")
-    import_questions()
+    _import_questions()
     logging.info("Question import complete")
     # Wait for eventual consistency
     while DbQuestion.all(keys_only=True).count(1) == 0:
@@ -103,7 +97,7 @@ def delete_all_questions():
             break
         db.delete(entries)
 
-def import_questions():
+def _import_questions():
     q = DbQuestion(index=1, theme="Seahawks", question="What is the last name of number 89 on the Seahawks 2014 football team?", answer="Baldwin", shows=None, likes=None); q.put(); DbAnswer(question=q,text="Tate",is_approved=True).put(); DbAnswer(question=q,text="Willson",is_approved=True).put(); DbAnswer(question=q,text="Simon",is_approved=True).put(); DbAnswer(question=q,text="Chancellor",is_approved=True).put(); DbAnswer(question=q,text="Lynch",is_approved=True).put();
     q = DbQuestion(index=2, theme="Seahawks", question="What is the name of the Seahawks drum line?  Blue ________", answer="Thunder", shows=None, likes=None); q.put(); DbAnswer(question=q,text="Lightning",is_approved=True).put(); DbAnswer(question=q,text="Rumble",is_approved=True).put(); DbAnswer(question=q,text="Quake",is_approved=True).put();
     q = DbQuestion(index=3, theme="Seahawks", question="Before a name-the-team contest led to the selection of 'Seahawks', what were they originally to be called?", answer="Kings", shows=None, likes=None); q.put(); DbAnswer(question=q,text="Sounders",is_approved=True).put(); DbAnswer(question=q,text="Surge",is_approved=True).put(); DbAnswer(question=q,text="Storm",is_approved=True).put(); DbAnswer(question=q,text="Flight",is_approved=True).put();
