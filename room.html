@@ -60,6 +60,28 @@
 			tr.winner {
 				background-color: orange !important;
 			}
+			.podium { 
+				position: relative; 
+				width: 100%;
+				border: 1px black
+				}
+
+			.podium h2 { 
+			   position: absolute; 
+			   width: 100%; 
+			}
+			.podium h2.first { 
+			   top: 200px; 
+			   left: 280px; 
+			}
+			.podium h2.second { 
+			   top: 280px; 
+			   left: 60px; 
+			}
+			.podium h2.third { 
+			   top: 320px; 
+			   left: 600px; 
+			}
 		</style>
 	</head>
 	<body>
@@ -243,7 +265,15 @@
 
 		<script id="gameovertemplate" type="text/x-handlebars-template">
 			<h1>Game Over</h1>
+				<div class="podium">
 
+				  <img src="/images/podium.png" alt="" />
+				  
+				  <h2 class="first">Kung Fu Panda</h2>
+				  <h2 class="second">King Panda</h2>
+				  <h2 class="third">Fred</h2>
+
+				</div>
 			<table class="table table-striped">
 				<thead>
 					<tr>
@@ -252,6 +282,7 @@
 					</tr>
 				</thead>
 				<tbody>
+
 					{% templatetag openvariable %}#users{% templatetag closevariable %}
 					<tr class="{% templatetag openvariable %}#if @first{% templatetag closevariable %}winner{% templatetag openvariable %}/if{% templatetag closevariable %}">
 						<td>{% templatetag openvariable %}nickname{% templatetag closevariable %}</td>
