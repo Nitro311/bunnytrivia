@@ -64,23 +64,28 @@
 				position: relative; 
 				width: 100%;
 				border: 1px black
-				}
+			}
+			.podium img {
+				width: 100%
+			}
 
 			.podium h2 { 
 			   position: absolute; 
-			   width: 100%; 
+			   width: 33%;
+			   
+			   text-align: center;
 			}
 			.podium h2.first { 
-			   top: 200px; 
-			   left: 280px; 
+			   top: 32%; 
+			   left: 32%; 
 			}
 			.podium h2.second { 
-			   top: 280px; 
-			   left: 60px; 
+				top: 46%;
+				left: 1%;
 			}
 			.podium h2.third { 
-			   top: 320px; 
-			   left: 600px; 
+				top: 52%;
+				left: 63%; 
 			}
 		</style>
 	</head>
@@ -269,9 +274,21 @@
 
 				  <img src="/images/podium.png" alt="" />
 				  
-				  <h2 class="first">Kung Fu Panda</h2>
-				  <h2 class="second">King Panda</h2>
-				  <h2 class="third">Fred</h2>
+				<h2 class="first">
+					{% templatetag openvariable %}#first{% templatetag closevariable %}
+						{% templatetag openvariable %}nickname{% templatetag closevariable %}
+					{% templatetag openvariable %}/first{% templatetag closevariable %}
+				</h2>
+				<h2 class="second">
+					{% templatetag openvariable %}#second{% templatetag closevariable %}
+						{% templatetag openvariable %}nickname{% templatetag closevariable %}
+					{% templatetag openvariable %}/second{% templatetag closevariable %}
+				</h2>
+				  <h2 class="third">
+				{% templatetag openvariable %}#third{% templatetag closevariable %}
+					{% templatetag openvariable %}nickname{% templatetag closevariable %}
+				{% templatetag openvariable %}/third{% templatetag closevariable %}
+				</h2>
 
 				</div>
 			<table class="table table-striped">
@@ -294,25 +311,6 @@
 
 			<button id="startgamenow" class="btn btn-lg btn-success">Restart</button>
 		
-			<p></p>
-			First: 
-			{% templatetag openvariable %}#first{% templatetag closevariable %}
-				{% templatetag openvariable %}nickname{% templatetag closevariable %}
-			{% templatetag openvariable %}/first{% templatetag closevariable %}
-
-			<p></p>
-			Second:
-			{% templatetag openvariable %}#second{% templatetag closevariable %}
-				{% templatetag openvariable %}nickname{% templatetag closevariable %}
-			{% templatetag openvariable %}/second{% templatetag closevariable %}
-
-			<p></p>
-			Third:
-			{% templatetag openvariable %}#third{% templatetag closevariable %}
-				{% templatetag openvariable %}nickname{% templatetag closevariable %}
-			{% templatetag openvariable %}/third{% templatetag closevariable %}
-
-			<p></p>
 		</script>
 
 		<script id="answeredquestiontemplate" type="text/x-handlebars-template">
