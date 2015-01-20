@@ -292,22 +292,43 @@ class RoomStateMessage(object):
                 switch_interval=switch_interval
                 )
         elif room.status == "score":
-            return dict(
-                room_id=room.room_id,
-                status=room.status,
-                users=sorted(sorted([dict(
+            users = sorted(sorted([dict(
                     nickname=user.nickname,
                     score=user.score,
                     score_change=room.score_changes.get(user.user_id, 0)
-                    ) for user in users], key=lambda user: -1 * user.get('score_change')), key=lambda user: -1 * user.get('score')),
+                    ) for user in users], key=lambda user: -1 * user.get('score_change')), key=lambda user: -1 * user.get('score'))
+
+            scores = sorted(list(set(user.get('score') for user in users)), reverse=True)
+
+            first_score = scores[0]
+            second_score = scores[1] if len(scores) == 2 else None
+            third_score = scores[2] if len(scores) == 3 else None
+
+            return dict(
+                room_id=room.room_id,
+                status=room.status,
+                users=users,
+                first=[user for user in users if user.get("score") == first_score],
+                second=[user for user in users if user.get("score") == second_score],
+                third=[user for user in users if user.get("score") == third_score],
                 time_to_switch=room.time_to_switch,
                 switch_interval=switch_interval
                 )
         elif room.status == "gameover":
+            users = sorted([dict(nickname=user.nickname, score=user.score) for user in users], key=lambda user: -1 * user.get('score'))
+            scores = sorted(list(set(user.get('score') for user in users)), reverse=True)
+
+            first_score = scores[0]
+            second_score = scores[1] if len(scores) == 2 else None
+            third_score = scores[2] if len(scores) == 3 else None
+
             return dict(
                 room_id=room.room_id,
                 status=room.status,
-                users=sorted([dict(nickname=user.nickname, score=user.score) for user in users], key=lambda user: -1 * user.get('score'))
+                first=[user for user in users if user.get("score") == first_score],
+                second=[user for user in users if user.get("score") == second_score],
+                third=[user for user in users if user.get("score") == third_score],
+                users=users
                 )
 
 

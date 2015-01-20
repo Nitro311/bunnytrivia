@@ -294,6 +294,25 @@
 
 			<button id="startgamenow" class="btn btn-lg btn-success">Restart</button>
 		
+			<p></p>
+			First: 
+			{% templatetag openvariable %}#first{% templatetag closevariable %}
+				{% templatetag openvariable %}nickname{% templatetag closevariable %}
+			{% templatetag openvariable %}/first{% templatetag closevariable %}
+
+			<p></p>
+			Second:
+			{% templatetag openvariable %}#second{% templatetag closevariable %}
+				{% templatetag openvariable %}nickname{% templatetag closevariable %}
+			{% templatetag openvariable %}/second{% templatetag closevariable %}
+
+			<p></p>
+			Third:
+			{% templatetag openvariable %}#third{% templatetag closevariable %}
+				{% templatetag openvariable %}nickname{% templatetag closevariable %}
+			{% templatetag openvariable %}/third{% templatetag closevariable %}
+
+			<p></p>
 		</script>
 
 		<script id="answeredquestiontemplate" type="text/x-handlebars-template">
