@@ -41,10 +41,6 @@ class Room(object):
         self.answers = {}
         self.score_changes = {}
         self.time_to_switch = None
-        for user_id in self.user_ids:
-            user = User.load(user_id)
-            user.score = 0
-            user.save()
 
     def __init__(self):
         self.room_id = self.create_random_id()
@@ -75,6 +71,10 @@ class Room(object):
         self.status = "round"
         self.round = 1
         self.time_to_switch = datetime.datetime.now() + Room.timedelta_for_information
+        for user_id in self.user_ids:
+            user = User.load(user_id)
+            user.score = 0
+            user.save()
 
     def upsert_user(self, user_id):
         if not user_id in self.user_ids:
@@ -498,7 +498,6 @@ class RoomRestartGameHandler(BaseRoomHandler):
         room_id = room_id.upper()
         (room, user) = self.get_room_and_user(room_id)
         logging.info("Game restart requested for %s by %s" % (room_id, user.user_id))
-
 
         if not room:
             logging.warn("Room does not exist")
