@@ -327,8 +327,8 @@ class RoomStateMessage(object):
             scores = sorted(list(set(user.get('score') for user in users)), reverse=True)
 
             first_score = scores[0]
-            second_score = scores[1] if len(scores) == 2 else None
-            third_score = scores[2] if len(scores) == 3 else None
+            second_score = scores[1] if len(scores) > 1 else None
+            third_score = scores[2] if len(scores) > 2 else None
 
             return dict(
                 room_id=room.room_id,
