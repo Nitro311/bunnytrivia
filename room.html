@@ -57,9 +57,6 @@
 				background-size: 40px 40px;
 				background-repeat: no-repeat;
 			}
-			tr.winner {
-				background-color: orange !important;
-			}
 			.podium {
 				position: relative;
 				width: 100%;
@@ -297,9 +294,8 @@
 					</tr>
 				</thead>
 				<tbody>
-
 					{% templatetag openvariable %}#users{% templatetag closevariable %}
-					<tr class="{% templatetag openvariable %}#if @first{% templatetag closevariable %}winner{% templatetag openvariable %}/if{% templatetag closevariable %}">
+					<tr>
 						<td>{% templatetag openvariable %}nickname{% templatetag closevariable %}</td>
 						<td>{% templatetag openvariable %}score{% templatetag closevariable %}</td>
 					</tr>
@@ -308,33 +304,7 @@
 			</table>
 
 			<button id="startgamenow" class="btn btn-lg btn-success">Restart</button>
-		
 		</script>
-
-		<script id="answeredquestiontemplate" type="text/x-handlebars-template">
-			<div style="text-align:center">
-				<h1>Question is over!</h1>
-				<h1>{% templatetag openvariable %}question{% templatetag closevariable %}</h1>
-				<table class="table table-striped">
-					<thead>
-						<tr>
-							<th>Player:</th>
-							<th>Answer:</th>
-						</tr>
-					</thead>
-					<tbody>
-						{% templatetag openvariable %}#guesses{% templatetag closevariable %}
-						<tr>
-							<td>{% templatetag openvariable %}nickname{% templatetag closevariable %}</td>
-							<td>{% templatetag openvariable %}guess{% templatetag closevariable %}</td>
-						</tr>
-						{% templatetag openvariable %}/guesses{% templatetag closevariable %}
-					</tbody>
-				</table>
-			</div>
-		</script>
-
-
 
 		<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 		<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
