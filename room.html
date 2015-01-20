@@ -35,10 +35,6 @@
 				background-color: green;
 			}
 
-			h1 {
-
-			}
-
 			#timer {
 				width: 60px;
 			}
@@ -431,9 +427,9 @@
 						console.log('Unknown room status: ' + JSON.stringify(data));
 					}
 
-/*					if (data.room.switch_interval) {
+					if (data.room.switch_interval) {
 						console.log("setting timer to " + (data.room.switch_interval / 1000.0));
-						$('#timer').polartimer('reset');
+						$('#timer').polartimer('destroy');
 						$('#timer').polartimer({
 							timerSeconds: data.room.switch_interval / 1000.0,
 							color: '#ff5016',
@@ -441,8 +437,8 @@
 						});
 						$('#timer').polartimer('start');
 					} else {
-						$('#timer').polartimer('reset');
-					}*/
+						$('#timer').polartimer('destroy');
+					}
 
 					roomState = data.room.status;
 				} else {
