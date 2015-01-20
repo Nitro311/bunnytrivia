@@ -18,55 +18,56 @@ from models.dbnewquestion import DbNewQuestion
 class AdminNewQuestionHandler(webapp2.RequestHandler):
     def get(self):
         try:
-            offset=int(self.request.get('offset'))
+            offset = int(self.request.get('offset'))
         except ValueError:
-            offset=0
-        query=DbNewQuestion.all()
+            offset = 0
+        query = DbNewQuestion.all()
         questions = list(query.run(limit=1, offset=offset))
 
         if not questions:
             url = self.request.host_url + "?reason=no_questions"
             return self.redirect(url)
-        question=questions[0]
+        question = questions[0]
         template_values = {
-            "question":question.question,
-            "answer":question.answer,
-            "fakeanswer1":question.fakeanswers[0],
-            "fakeanswer2":question.fakeanswers[1],
-            "fakeanswer3":question.fakeanswers[2],
-            "fakeanswer4":question.fakeanswers[3] if len(question.fakeanswers)==4 else "",
-            "fakeanswer5":question.fakeanswers[4] if len(question.fakeanswers)==5 else ""
+            "question": question.question,
+            "answer": question.answer,
+            "fakeanswer1": question.fakeanswers[0],
+            "fakeanswer2": question.fakeanswers[1],
+            "fakeanswer3": question.fakeanswers[2],
+            "fakeanswer4": question.fakeanswers[3] if len(question.fakeanswers) == 4 else "",
+            "fakeanswer5": question.fakeanswers[4] if len(question.fakeanswers) == 5 else ""
             }
-        path = os.path.join(os.path.dirname(__file__), 'adminnewquestion.html')
+        path = os.path.join(os.path.dirname(__file__), 'newquestion.html')
         self.response.out.write(template.render(path, template_values))
 
     def post(self):
         try:
-            offset=int(self.request.get('offset'))
+            offset = int(self.request.get('offset'))
         except ValueError:
-            offset=0
+            offset = 0
         if self.request.get('approve'):
-            query=DbNewQuestion.all()
+            query = DbNewQuestion.all()
             questions = list(query.run(limit=1, offset=offset))
-            newquestion=questions[offset]
-            question=DbQuestion(index=DbQuestion.get_highest_index()+1, question=newquestion.question, answer=newquestion.answer, theme="Miscellaneous")
+            newquestion = questions[offset]
+            question = DbQuestion(index=DbQuestion.get_highest_index() + 1, question=newquestion.question, answer=newquestion.answer, theme="Miscellaneous")
             for fakeanswer in newquestion.fakeanswers:
                 DbAnswer(question=question, text=fakeanswer).put()
             question.put()
             newquestion.delete()
-            url = self.request.path_url + "?offset="+str(offset)
+            url = self.request.path_url + "?offset=" + str(offset)
             return self.redirect(url)
         elif self.request.get('skip'):
-            url = self.request.path_url + "?offset="+str(offset+1)
+            url = self.request.path_url + "?offset=" + str(offset+1)
             return self.redirect(url)
         elif self.request.get('delete'):
             query=DbNewQuestion.all()
             questions = list(query.run(limit=1, offset=offset))
             questions[offset].delete()
-            url = self.request.path_url + "?offset="+str(offset)
+            url = self.request.path_url + "?offset=" + str(offset)
             return self.redirect(url)
         else:
             logging.warn("Failed to post!")
+
 class AdminExportHandler(webapp2.RequestHandler):
     def get(self):
         self.response.out.write("<pre>\n")
