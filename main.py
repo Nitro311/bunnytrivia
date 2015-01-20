@@ -263,14 +263,22 @@ class RoomStateMessage(object):
             all_guesses = {guess for guess in room.guesses.values()}
             all_guesses.add(room.question.answer.upper())
             all_guesses |= room.wrong_answers
+            user_map = {user.user_id: user.nickname for user in users}
             guessers_for_guesses = {guess:[] for guess in all_guesses}
             for user_id, guess in room.answers.items():
-                guessers_for_guesses[guess].append([user.nickname for user in users if user.user_id == user_id][0])
+                guessers_for_guesses[guess].append(user_map[user_id])
+            writers_for_guesses = {guess:[] for guess in all_guesses}
+            for user_id, guess in room.guesses.items():
+                writers_for_guesses[guess].append(user_map[user_id])
             guesses = [dict(
                 answer=guess,
                 guessers=guessers_for_guesses[guess],
+                writers=writers_for_guesses[guess],
                 is_correct=(guess == room.question.answer)
                 ) for guess in all_guesses]
+
+            guesses.sort(key=lambda g: (g["is_correct"], -1 * len(g["guessers"]), -1 * len(g["writers"])))
+
             return dict(
                 room_id=room.room_id,
                 status=room.status,

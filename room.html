@@ -204,6 +204,7 @@
 					<tr>
 						<th>Answer</th>
 						<th>Who guessed it</th>
+						<th>Who wrote it</th>
 						<th>Correct?</th>
 					</tr>
 				</thead>
@@ -212,6 +213,7 @@
 					<tr>
 						<td>{% templatetag openvariable %}answer{% templatetag closevariable %}</td>
 						<td>{% templatetag openvariable %}#guessers{% templatetag closevariable %}{% templatetag openvariable %}this{% templatetag closevariable %} {% templatetag openvariable %}/guessers{% templatetag closevariable %}</td>
+						<td>{% templatetag openvariable %}#writers{% templatetag closevariable %}{% templatetag openvariable %}this{% templatetag closevariable %} {% templatetag openvariable %}/writers{% templatetag closevariable %}</td>
 						<td class="{% templatetag openvariable %}is_correct{% templatetag closevariable %}"></td>
 					</tr>
 					{% templatetag openvariable %}/guesses{% templatetag closevariable %}
