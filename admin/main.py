@@ -28,14 +28,12 @@ class AdminNewQuestionHandler(webapp2.RequestHandler):
             url = self.request.host_url + "?reason=no_questions"
             return self.redirect(url)
         question = questions[0]
+        fakeanswers = question.fakeanswers
+        fakeanswers.append("")
         template_values = {
             "question": question.question,
             "answer": question.answer,
-            "fakeanswer1": question.fakeanswers[0],
-            "fakeanswer2": question.fakeanswers[1],
-            "fakeanswer3": question.fakeanswers[2],
-            "fakeanswer4": question.fakeanswers[3] if len(question.fakeanswers) == 4 else "",
-            "fakeanswer5": question.fakeanswers[4] if len(question.fakeanswers) == 5 else ""
+            "fakeanswers": fakeanswers
             }
         path = os.path.join(os.path.dirname(__file__), 'newquestion.html')
         self.response.out.write(template.render(path, template_values))
@@ -49,8 +47,12 @@ class AdminNewQuestionHandler(webapp2.RequestHandler):
             query = DbNewQuestion.all()
             questions = list(query.run(limit=1, offset=offset))
             newquestion = questions[offset]
-            question = DbQuestion(index=DbQuestion.get_highest_index() + 1, question=newquestion.question, answer=newquestion.answer, theme="Miscellaneous")
-            for fakeanswer in newquestion.fakeanswers:
+            question = DbQuestion(
+                index=DbQuestion.get_highest_index() + 1, 
+                question=self.request.get('question'), 
+                answer=self.request.get('answer'),
+                theme="Miscellaneous")
+            for fakeanswer in self.request.get_all('fakeanswers'):
                 DbAnswer(question=question, text=fakeanswer).put()
             question.put()
             newquestion.delete()

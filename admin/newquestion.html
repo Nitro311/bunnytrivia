@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 	<head>
 		<meta charset="utf-8">
@@ -56,12 +56,10 @@
 					<input type=text class="form-control" name="answer" placeholder="Carrot" value="{{answer}}" required>
 				</div>
 				<div class="form-group">
-					<label for="fakeanswer1">Fake Answers</label>
-					<input type=text class="form-control" name="fakeanswer1"  value="{{fakeanswer1}}">
-					<input type=text class="form-control" name="fakeanswer2"  value="{{fakeanswer2}}">
-					<input type=text class="form-control" name="fakeanswer3" value="{{fakeanswer3}}">
-					<input type=text class="form-control" name="fakeanswer4" value="{{fakeanswer4}}">
-					<input type=text class="form-control" name="fakeanswer5"value="{{fakeanswer5}}">
+					<label for="fakeanswer">Fake Answers</label>
+					{% for fakeanswer in fakeanswers %}
+					<input type=text class="form-control" name="fakeanswer" value="{{fakeanswer}}">
+					{% endfor %}
 				</div>
 				<button name="approve"type="submit" value="approve" class="btn btn-success">Approve</button>
 				<button name="skip"type="submit" value="skip" class="btn btn-info">Skip</button>
