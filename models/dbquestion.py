@@ -1,6 +1,7 @@
 import logging
 import random
 import string
+from wordfixer import WordFixer
 from google.appengine.ext import db
 
 class DbQuestion(db.Model):
@@ -52,7 +53,7 @@ class DbQuestion(db.Model):
     likes = db.IntegerProperty(indexed=False)
 
     def get_just_answers(self):
-        return [answer.text.upper() for answer in self.answers]
+        return [wordfixer.standardize_guess(answer.text) for answer in self.answers]
 
     def to_python_code(self):
         q = '    q = DbQuestion(index=%d, theme="%s", question="%s", answer="%s", shows=%s, likes=%s); q.put()' % (self.index, self.theme, self.question.replace('"', '\\"'), self.answer, str(self.shows) if self.shows else "None", str(self.likes) if self.likes else "None")
