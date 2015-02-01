@@ -17,7 +17,7 @@ handlers:
 - url: /(robots\.txt|favicon\.ico|apple-touch-icon.*\.png|mstile-*\.png|crossdomain\.xml|humans\.txt)
   static_files: static/\1
   upload: static/(.*)
-- url: /admin/.*
+- url: /admin(/.*)?
   script: admin.main.app
   login: admin
 - url: /.*

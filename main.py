@@ -407,11 +407,11 @@ class IndexHandler(webapp2.RequestHandler):
         "is_admin":users.is_current_user_admin()
         }
         if self.request.get("reason") == "room_not_found":
-            template_values = {"alert": "The room was not found", "alert_class":"danger"}
+            template_values.update({"alert": "The room was not found", "alert_class":"danger"})
         if self.request.get("reason") == "question_added":
-            template_values = {"alert": "The Question was succssesfuly added to the database!", "alert_class":"success"}
+            template_values.update({"alert": "The Question was succssesfuly added to the database!", "alert_class":"success"})
         if self.request.get("reason") == "no_questions":
-            template_values = {"alert": "No more question to evaluate!", "alert_class":"info"}
+            template_values.update({"alert": "No more question to evaluate!", "alert_class":"info"})
         path = os.path.join(os.path.dirname(__file__), 'index.html')
 
         self.response.out.write(template.render(path, template_values))
@@ -626,7 +626,6 @@ wordfixer = WordFixer(os.path.join(os.path.split(__file__)[0], 'data/words.txt')
 app = webapp2.WSGIApplication([
     ('/', IndexHandler),
     ('/newquestion', NewQuestionHandler),
-
     ('/room/?', RoomCreateHandler),
     ('/room/([A-Za-z]+)', RoomViewHandler),
     ('/room/([A-Za-z]+)/checkstate', RoomCheckStateHandler),

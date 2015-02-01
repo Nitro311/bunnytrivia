@@ -1,0 +1,96 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Bunny Trivia</title>
+
+		<!-- Bootstrap -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
+
+		<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+		<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+		<!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+			<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+		<![endif]-->
+		
+		<style>
+			.page {
+				text-align: center;
+			}
+			
+			.navbar-brand {
+				text-align: center;
+			}
+			
+			.navbar-brand img {
+				max-height: 50px;
+				max-width: 70%;
+			}
+			
+			#alertbar {
+				display: none;
+			}
+			
+		</style>
+	</head>
+	<body>
+		<nav class="navbar navbar-default">
+			<div class="container">
+				<div class="navbar-header">
+					<a class="navbar-brand" href="#"><img src="/images/logo.png" alt="Bunny Trivia"></a>
+				</div>
+			</div>
+		</nav>
+		<div class="container">
+
+		<h1>
+		<b>
+		Question:
+		<b>
+		</h1>
+		<h2>
+		{{question}}
+		</h2>
+		<h1>
+		<b>
+		Answer:
+		</b>
+		</h1>
+		<h2>
+		{{answer}}
+		</h2>
+		
+		<h1>
+		<b>
+		Fake Answers:
+		</b>
+		</h1>
+		
+		<p>
+		{% for fakeanswer in fakeanswers %}
+		<div>
+		<input type=text name="fakeanswer" value="{{fakeanswer.text}}">
+		<div class="btn-group" data-toggle="buttons">
+		<label class="btn btn-default"><input type="radio" name="approve" value="{{fakeanswer.text}}">Approve</label>
+		<label class="btn btn-default"><input type="radio" name="remove" value="{{fakeanswer.text}}">Remove</label>
+		<label class="btn btn-default"><input type="radio" name="alias" value="{{fakeanswer.text}}">Alias</label>
+		</div>
+		</div>
+		{% endfor %}
+		<button name="approve"type="submit" value="approve" class="btn btn-success">Approve</button>
+		<button name="skip"type="submit" value="skip" class="btn btn-info">Skip</button>
+
+		</p>
+		
+		</div>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+		
+		<script>			
+		</script>
+	</body>
+</html>
