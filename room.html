@@ -18,21 +18,55 @@
 		<![endif]-->
 
 		<style>
-			.navbar-brand img {
-				max-height: 50px;
-				max-width: 70%;
+			.navbar {
+				border: none;
+				border-radius: 0;
+				box-shadow: none;
+				background-image: none;
+				background-color: #f0f0f0;
 			}
+
+			.navbar-brand {
+				line-height: 50px;
+				text-align: center;
+				
+			}
+
+			.navbar-brand img {
+				 max-height: 50px;
+				 max-width: 70%;
+				 margin-top: -10px;
+			 }
 
 			#nickname form {
 				display: inline;
 			}
 
+			#state {
+				color: white;
+				height: 50px;
+				vertical-align: middle;
+			}
+
+			#state div {
+				padding: 15px;
+				
+			}
+
 			.disconnected {
-				background-color: red;
+				background-color: #b22222;
+			}
+
+			.disconnected div:after {
+				content: "Disconnected";
 			}
 
 			.connected {
 				background-color: green;
+			}
+
+			.connected div:before {
+				content: "Connected";
 			}
 
 			#timer {
@@ -96,7 +130,7 @@
 				<div id="navbar" class="collapse navbar-collapse">
 					<ul class="nav navbar-nav navbar-right">
 						<li id="nickname"></li>
-						<li id="state" class="disconnected">Connection</li>
+						<li id="state" class="disconnected"><div></div></li>
 					</ul>
 				</div>
 			</div>
