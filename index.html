@@ -67,6 +67,13 @@
 					</br>
 					</br>
 					<a href="/newquestion" class="btn btn-lg btn-info" id="questioncreator">Create a new Question!</a>
+					
+					
+					{% if is_admin %}
+					</br>
+					</br>
+					<a href="/admin" class="btn btn-lg btn-danger">Admin Menu</a>
+					{% endif %}
 				</form>
 			</div>
 		</div>

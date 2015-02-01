@@ -403,7 +403,9 @@ class BaseRoomHandler(webapp2.RequestHandler):
 
 class IndexHandler(webapp2.RequestHandler):
     def get(self):
-        template_values = {}
+        template_values = {
+        "is_admin":users.is_current_user_admin()
+        }
         if self.request.get("reason") == "room_not_found":
             template_values = {"alert": "The room was not found", "alert_class":"danger"}
         if self.request.get("reason") == "question_added":
