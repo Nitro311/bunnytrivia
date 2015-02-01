@@ -58,7 +58,7 @@ class Room(object):
 
     def set_answer(self, user_id, answer):
         if self.status == 'questionanswer':
-            if answer in self.guesses.values() or answer == self.question.answer or answer in self.question.get_just_answers():
+            if answer in self.guesses.values() or answer == self.question.answer or answer in self.wrong_answers:
                 self.answers[user_id] = answer
                 if len(self.user_ids) == len(self.answers):
                     self.advance_state(ignore_time=True)
@@ -109,7 +109,7 @@ class Room(object):
 
     def pick_wrong_answers(self):
         # TODO: Factor in the shows, picks, and likes to get better wrong answers
-        possible_answers = [answer.upper() for answer in self.question.get_just_answers()]
+        possible_answers = [wordfixer.standardize_guess(answer.upper()) for answer in self.question.get_just_answers()]
         random.shuffle(possible_answers)
         self.wrong_answers = set(possible_answers[:max(1, 4 - len(set(self.guesses.values())))])
 
@@ -216,13 +216,14 @@ class SpellingSuggestionMessage(object):
         self.suggestions = suggestions
 
 class RoomStateMessage(object):
-    def __init__(self, room, user):
+    def __init__(self, room, intended_user_id):
         self.message_type = "room"
         self.room_id = room.room_id
-        self.room = self.get_state(room, user.user_id)
+        self.room = self.get_state(room, intended_user_id)
 
-    def get_state(self, room, user_id):
-        switch_interval = (room.time_to_switch - datetime.datetime.now()).total_seconds() * 1000.0 if room.time_to_switch and room.host == user_id else None
+    def get_state(self, room, intended_user_id):
+        remaining_interval = (room.time_to_switch - datetime.datetime.now()).total_seconds() * 1000.0 if room.time_to_switch else None
+        switch_interval = remaining_interval if room.host == intended_user_id else None
         users = [User.load(user_id) for user_id in room.user_ids]
 
         if room.status == 'waiting':
@@ -238,6 +239,7 @@ class RoomStateMessage(object):
                 round=room.round,
                 is_last_round=room.round == Room.last_round,
                 time_to_switch=room.time_to_switch,
+                remaining_interval=remaining_interval,
                 switch_interval=switch_interval
                 )
         elif room.status == "questionguess":
@@ -246,6 +248,7 @@ class RoomStateMessage(object):
                 status=room.status,
                 question=room.question.question,
                 time_to_switch=room.time_to_switch,
+                remaining_interval=remaining_interval,
                 switch_interval=switch_interval
                 )
         elif room.status == "questionanswer":
@@ -258,6 +261,7 @@ class RoomStateMessage(object):
                 guesses=list(all_guesses),
                 question=room.question.question,
                 time_to_switch=room.time_to_switch,
+                remaining_interval=remaining_interval,
                 switch_interval=switch_interval
                 )
         elif room.status == "questionreveal":
@@ -286,6 +290,7 @@ class RoomStateMessage(object):
                 guesses=guesses,
                 question=room.question.question,
                 time_to_switch=room.time_to_switch,
+                remaining_interval=remaining_interval,
                 switch_interval=switch_interval
                 )
         elif room.status == "questionscore":
@@ -298,6 +303,7 @@ class RoomStateMessage(object):
                     ) for user in users], key=lambda user: -1 * user.get('score_change')),
                 question=room.question.question,
                 time_to_switch=room.time_to_switch,
+                remaining_interval=remaining_interval,
                 switch_interval=switch_interval
                 )
         elif room.status == "score":
@@ -321,6 +327,7 @@ class RoomStateMessage(object):
                 second=[user for user in users if user.get("score") == second_score],
                 third=[user for user in users if user.get("score") == third_score],
                 time_to_switch=room.time_to_switch,
+                remaining_interval=remaining_interval,
                 switch_interval=switch_interval
                 )
         elif room.status == "gameover":
@@ -358,6 +365,11 @@ class BaseRoomHandler(webapp2.RequestHandler):
         room = Room.load(room_id)
         for user_id in room.user_ids:
             self.add_user_message(user_id, message)
+
+    def add_room_state_messages(self, room):
+        logging.info("Sending room state message to room " + room.room_id)
+        for user_id in room.user_ids:
+            self.add_user_message(user_id, RoomStateMessage(room, user_id))
 
     def send_messages(self):
         for user_id in self.messages:
@@ -415,7 +427,7 @@ class RoomCheckStateHandler(BaseRoomHandler):
         if room.host == user.user_id:
             logging.info("Advancing the room state")
             room.advance_state(ignore_time=False)
-            self.add_room_message(room.room_id, RoomStateMessage(room, user))
+            self.add_room_state_messages(room)
             self.send_messages()
 
         else:
@@ -436,7 +448,7 @@ class RoomConnectHandler(BaseRoomHandler):
         room.save()
 
         self.add_user_message(user.user_id, ConnectedMessage())
-        self.add_room_message(room.room_id, RoomStateMessage(room, user))
+        self.add_room_state_messages(room)
         self.send_messages()
 
 class RoomSetNicknameHandler(BaseRoomHandler):
@@ -459,7 +471,7 @@ class RoomSetNicknameHandler(BaseRoomHandler):
         user.nickname = newnickname
         user.save()
         self.add_user_message(user.user_id, NewNicknameMessage(user.nickname))
-        self.add_room_message(room.room_id, RoomStateMessage(room, user))
+        self.add_room_state_messages(room)
         self.send_messages()
 
 class RoomCreateHandler(webapp2.RequestHandler):
@@ -516,7 +528,7 @@ class RoomRestartGameHandler(BaseRoomHandler):
             room.reset_game()
             room.save()
 
-            self.add_room_message(room.room_id, RoomStateMessage(room, user))
+            self.add_room_state_messages(room)
             self.send_messages()
 
 class RoomStartGameHandler(BaseRoomHandler):
@@ -532,7 +544,7 @@ class RoomStartGameHandler(BaseRoomHandler):
         room.start_game()
         room.save()
 
-        self.add_room_message(room.room_id, RoomStateMessage(room, user))
+        self.add_room_state_messages(room)
         self.send_messages()
 
 class RoomSendGuessHandler(BaseRoomHandler):
@@ -561,7 +573,7 @@ class RoomSendGuessHandler(BaseRoomHandler):
             # Send message to let them update their guess
             self.add_user_message(user.user_id, SpellingSuggestionMessage(suggestions))
 
-        self.add_room_message(room.room_id, RoomStateMessage(room, user))
+        self.add_room_state_messages(room)
         self.send_messages()
 
 class RoomSendAnswerHandler(BaseRoomHandler):
@@ -578,7 +590,7 @@ class RoomSendAnswerHandler(BaseRoomHandler):
         room.set_answer(user.user_id, answer)
         room.save()
 
-        self.add_room_message(room.room_id, RoomStateMessage(room, user))
+        self.add_room_state_messages(room)
         self.send_messages()
 
 class NewQuestionHandler(webapp2.RequestHandler):

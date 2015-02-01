@@ -463,12 +463,12 @@
 						console.log('Unknown room status: ' + JSON.stringify(data));
 					}
 
-					if (data.room.switch_interval) {
-						console.log("setting timer to " + (data.room.switch_interval / 1000.0));
+					if (data.room.remaining_interval) {
+						console.log("setting timer to " + (data.room.remaining_interval / 1000.0));
 						$('#timer').polartimer('destroy');
 						$('#timer').polartimer({
-							timerSeconds: data.room.switch_interval / 1000.0,
-							color: '#ff5016',
+							timerSeconds: data.room.remaining_interval / 1000.0,
+							color: 'green',
 							opacity: 0.8
 						});
 						$('#timer').polartimer('start');
