@@ -168,6 +168,7 @@ class Room(object):
     def save(self):
         # Fix hosts if it accidentally goes bad
         if not self.host in self.user_ids and len(self.user_ids) > 0:
+            logging.warn("Had to fix room host.  user_id %s not found in room" % self.host)
             self.host = self.user_ids[0]
         memcache.set("room-" + self.room_id, self)
 
